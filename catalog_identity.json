@@ -1,0 +1,46 @@
+{
+  "format_version": 1,
+  "game": {
+    "name": "Wild9",
+    "id": "SLUS-00425",
+    "boot_exe": "SLUS_004.25"
+  },
+  "marketing": {
+    "description": "Wild 9 is a side-scrolling action/platformer developed by the creators of Earthworm Jim. You play as Wex Major, the last free member of the \"Wild 9\" team, on a mission to rescue his eight kidnapped teammates from the evil Karn.",
+    "publisher": "Interplay",
+    "year": "1998",
+    "region": "USA",
+    "players": 1
+  },
+  "rom_identity": {
+    "cue_name": "Wild 9 (USA).cue",
+    "bin_name": "Wild 9 (USA).bin",
+    "track_counts": [
+      15
+    ],
+    "require_cue": true,
+    "data_track": {
+      "size": 578312112,
+      "md5": "1fb016f3a54d939a2cf473209ec24288",
+      "sha1": "8603e46a1f8f69a0962fdb83f45d11b1e86ca9e3",
+      "crc32": "c6f94075"
+    },
+    "disc_fp": "da6f5807b645c485f2d68e2fad4ae2a0aa10e04dc96bd7958ac0cd1d818a2d52"
+  },
+  "exe": {
+    "load_address": "0x80010000",
+    "entry_pc": "0x8005F7C8",
+    "text_size": "0x00067800",
+    "stack_base": "0x801FFFF0"
+  },
+  "seeds": {
+    "count": 709,
+    "source": "boot_exe_jal"
+  },
+  "warnings": [],
+  "notes": [
+    "entry_pc/load_address/text_size/stack_base taken from PS-X EXE header.",
+    "seeds are first-pass boot-EXE JAL targets (+ entry); expect to grow as overlays / runtime paths are discovered.",
+    "required_disc_fp is psxrecomp-toc-v1 (matches runtime DiscIdentity)."
+  ]
+}

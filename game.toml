@@ -1,0 +1,54 @@
+# Autofilled by tools/new_project_layout/probe_disc.py from your legal dump.
+# Review before shipping. Runtime quirks / overlay seeds still need hand work.
+
+[game]
+name = "Wild 9"
+id = "SLUS-00425"
+players = 1
+exe = "disc/SLUS_004.25"
+disc = "/home/plinkr/ROMs/Wild9/Wild 9 (USA).cue"
+load_address = "0x80010000"
+entry_pc = "0x8005F7C8"
+text_size = "0x00067800"
+stack_base = "0x801FFFF0"
+
+# Digests are for data Track 01 (first BINARY FILE / TRACK 01).
+[prepare_disc]
+out_dir = "disc"
+bin_name = "Wild 9 (USA).bin"
+cue_name = "Wild 9 (USA).cue"
+boot_exe = "SLUS_004.25"
+known_sizes = [578312112]
+known_md5 = [
+  "1fb016f3a54d939a2cf473209ec24288",
+]
+known_sha1 = [
+  "8603e46a1f8f69a0962fdb83f45d11b1e86ca9e3",
+]
+known_crc32 = [
+  "c6f94075",
+]
+
+[recompiler]
+seeds = "seeds/ghidra_funcs.txt"
+out_dir = "generated"
+strict = true
+
+[runtime]
+window_title = "Wild 9 Recompiled"
+memcard_dir = "saves"
+
+[video]
+renderer = "opengl"
+aspect_ratio = "4:3"
+
+[controller]
+default_mode = "digital"
+
+# Online mount gate: digests + track count + optional TOC fingerprint
+# (see docs/NETPLAY.md).
+multitap_analog = true
+[netplay]
+require_cue = true
+required_tracks = 15
+required_disc_fp = "da6f5807b645c485f2d68e2fad4ae2a0aa10e04dc96bd7958ac0cd1d818a2d52"

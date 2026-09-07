@@ -1,0 +1,29 @@
+{
+  "cue_path": "/home/plinkr/ROMs/Wild9/Wild 9 (USA).cue",
+  "cue_name": "Wild 9 (USA).cue",
+  "bin_name": "Wild 9 (USA).bin",
+  "track_count": 15,
+  "data_track_size": 578312112,
+  "data_track_md5": "1fb016f3a54d939a2cf473209ec24288",
+  "data_track_sha1": "8603e46a1f8f69a0962fdb83f45d11b1e86ca9e3",
+  "data_track_crc32": "c6f94075",
+  "boot_exe": "SLUS_004.25",
+  "serial": "SLUS-00425",
+  "serial_exe": "SLUS_004.25",
+  "volume_id": "",
+  "display_name": "Wild9",
+  "load_address": "0x80010000",
+  "entry_pc": "0x8005F7C8",
+  "text_size": "0x00067800",
+  "stack_base": "0x801FFFF0",
+  "require_cue": true,
+  "required_disc_fp": "da6f5807b645c485f2d68e2fad4ae2a0aa10e04dc96bd7958ac0cd1d818a2d52",
+  "boot_exe_sha256": "ab280169ed52906589b8353a00c5cb4e9851da21d1023c98569de51958a44012",
+  "seed_count": 709,
+  "warnings": [],
+  "notes": [
+    "entry_pc/load_address/text_size/stack_base taken from PS-X EXE header.",
+    "seeds are first-pass boot-EXE JAL targets (+ entry); expect to grow as overlays / runtime paths are discovered.",
+    "required_disc_fp is psxrecomp-toc-v1 (matches runtime DiscIdentity)."
+  ]
+}
