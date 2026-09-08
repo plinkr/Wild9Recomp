@@ -35,6 +35,7 @@ if(NOT IS_DIRECTORY "${PSX_PRELOADED_MODS}")
 endif()
 
 psxrecomp_add_game_runtime(psx-runtime
+    PGXP
     PRELOADED_MODS_DIR "${PSX_PRELOADED_MODS}"
     # ENABLE_NETPLAY_IF_PRESENT
     # NETPLAY_LOBBY_URL "ws://netplay.retcomm.net:8765"

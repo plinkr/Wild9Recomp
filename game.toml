@@ -6,7 +6,7 @@ name = "Wild 9"
 id = "SLUS-00425"
 players = 1
 exe = "disc/SLUS_004.25"
-disc = "/home/plinkr/ROMs/Wild9/Wild 9 (USA).cue"
+disc = "disc/Wild 9 (USA).cue"
 load_address = "0x80010000"
 entry_pc = "0x8005F7C8"
 text_size = "0x00067800"
@@ -41,13 +41,17 @@ memcard_dir = "saves"
 [video]
 renderer = "opengl"
 aspect_ratio = "4:3"
+supersampling         = 3
+geometry_correction   = true
+perspective_texturing = true
+pgxp_tolerance        = 1.0
 
 [controller]
 default_mode = "digital"
+multitap_analog = true
 
 # Online mount gate: digests + track count + optional TOC fingerprint
 # (see docs/NETPLAY.md).
-multitap_analog = true
 [netplay]
 require_cue = true
 required_tracks = 15
