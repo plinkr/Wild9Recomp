@@ -10,6 +10,18 @@
   <img src="launcher_assets/img/boxart.png" alt="Wild 9 Box Art" width="280">
 </p>
 
+<div align="center">
+  <p style="max-width:900px; margin:0 auto;">Screenshots (click a thumbnail to view full size):</p>
+  <div style="margin-top:12px; overflow-x:auto; white-space:nowrap; padding:8px 4px; -webkit-overflow-scrolling:touch;">
+    <a href="https://github.com/user-attachments/assets/7784e243-98aa-4e82-9107-4bdabb7146bc" target="_blank" rel="noopener">
+      <img src="https://github.com/user-attachments/assets/7784e243-98aa-4e82-9107-4bdabb7146bc" width="280" style="display:inline-block; margin-right:8px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.12);" alt="Level 1" />
+    </a>
+    <a href="https://github.com/user-attachments/assets/5e9e5a1a-76ab-438c-8e88-df57aa4a49e4" target="_blank" rel="noopener">
+      <img src="https://github.com/user-attachments/assets/5e9e5a1a-76ab-438c-8e88-df57aa4a49e4" width="280" style="display:inline-block; margin-right:8px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.12);" alt="Level 4" />
+    </a>
+  </div>
+</div>
+
 **Wild 9 Recompiled**
 
 This project is a native PC port of the classic PlayStation title **Wild 9** (1998, developed by Shiny Entertainment and published by Interplay). It is built through static recompilation powered by [psxrecomp](https://github.com/mstan/psxrecomp) and [recomp-ui](https://github.com/mstan/recomp-ui).
