@@ -1,0 +1,12 @@
+# [widescreen] candidates from `psxrecomp-analyze --scan-widescreen`.
+# Static analysis only — no runtime, trace, or overlay capture was read.
+#
+# These are CANDIDATES. Every one satisfies the instruction form
+# code_generator.cpp requires, so none can break the build, but only
+# playtesting shows whether a site is the right one to widen.
+# Paste into game.toml and cut what does not help.
+
+[widescreen.cull]
+auto_screen_x = true
+screen_w_imms = ["0x140"]
+screen_h_imms = ["0xE0"]

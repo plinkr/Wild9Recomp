@@ -1,6 +1,3 @@
-# Autofilled by tools/new_project_layout/probe_disc.py from your legal dump.
-# Review before shipping. Runtime quirks / overlay seeds still need hand work.
-
 [game]
 name = "Wild 9"
 id = "SLUS-00425"
@@ -12,22 +9,15 @@ entry_pc = "0x8005F7C8"
 text_size = "0x00067800"
 stack_base = "0x801FFFF0"
 
-# Digests are for data Track 01 (first BINARY FILE / TRACK 01).
 [prepare_disc]
 out_dir = "disc"
 bin_name = "Wild 9 (USA).bin"
 cue_name = "Wild 9 (USA).cue"
 boot_exe = "SLUS_004.25"
 known_sizes = [578312112]
-known_md5 = [
-  "1fb016f3a54d939a2cf473209ec24288",
-]
-known_sha1 = [
-  "8603e46a1f8f69a0962fdb83f45d11b1e86ca9e3",
-]
-known_crc32 = [
-  "c6f94075",
-]
+known_md5 = ["1fb016f3a54d939a2cf473209ec24288"]
+known_sha1 = ["8603e46a1f8f69a0962fdb83f45d11b1e86ca9e3"]
+known_crc32 = ["c6f94075"]
 
 [recompiler]
 seeds = "seeds/ghidra_funcs.txt"
@@ -41,17 +31,27 @@ memcard_dir = "saves"
 [video]
 renderer = "opengl"
 aspect_ratio = "4:3"
-supersampling         = 3
-geometry_correction   = true
+supersampling = 3
+geometry_correction = true
 perspective_texturing = true
-pgxp_tolerance        = 1.0
+pgxp_tolerance = 1.0
+
+[widescreen]
+native_wide = true
+full_2d = true
+gte_game_mode = true
+
+[widescreen.cull]
+auto_screen_x = true
+a1_sites = ["0x8001BECC", "0x8001C21C", "0x80027038"]
+screen_w_imms = ["0x100", "0x101", "0x12C", "0x12D", "0x141"]
+screen_h_imms = ["0xC8", "0xC9", "0xDD"]
+slti_lower_sites = ["0x8001A6A4", "0x8001A6C0", "0x8001A6D4"]
 
 [controller]
 default_mode = "digital"
 multitap_analog = true
 
-# Online mount gate: digests + track count + optional TOC fingerprint
-# (see docs/NETPLAY.md).
 [netplay]
 require_cue = true
 required_tracks = 15

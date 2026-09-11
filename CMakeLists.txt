@@ -34,6 +34,9 @@ if(NOT IS_DIRECTORY "${PSX_PRELOADED_MODS}")
     set(PSX_PRELOADED_MODS "NONE")
 endif()
 
+file(GLOB WILD9_MOD_PLUGIN_SOURCES CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/mods/*.c")
+
 psxrecomp_add_game_runtime(psx-runtime
     PGXP
     PRELOADED_MODS_DIR "${PSX_PRELOADED_MODS}"
@@ -49,6 +52,8 @@ psxrecomp_add_game_runtime(psx-runtime
     GEN_FULL_GLOB "generated/SLUS_004.25_full_*.c"
     CODEGEN_SETUP_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/codegen_setup.c"
 )
+
+target_sources(psx-runtime PRIVATE ${WILD9_MOD_PLUGIN_SOURCES})
 
 # Stage runtime configs next to the exe for direct build/ launches. Only copy
 # files that exist — never fail POST_BUILD when game_options.toml is absent.

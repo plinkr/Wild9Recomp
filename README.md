@@ -1,4 +1,4 @@
-# Wild9 Recompiled
+# Wild 9 Recompiled
 
 <!-- retcomm-readme-metrics -->
 [![GitHub downloads (all assets, all releases)](https://img.shields.io/github/downloads/plinkr/Wild9Recomp/total)](https://github.com/plinkr/Wild9Recomp/releases)
@@ -6,99 +6,90 @@
 [![GitHub release](https://img.shields.io/github/v/release/plinkr/Wild9Recomp)](https://github.com/plinkr/Wild9Recomp/releases/latest)
 <!-- /retcomm-readme-metrics -->
 
-<!-- retcomm-readme-boxart -->
 <p align="center">
-  <img src="launcher_assets/img/boxart.png" alt="Wild9 box art" width="280">
+  <img src="launcher_assets/img/boxart.png" alt="Wild 9 Box Art" width="280">
 </p>
-<!-- /retcomm-readme-boxart -->
 
-Static recompilation of **Wild9** built on
-[psxrecomp](https://github.com/mstan/psxrecomp) and
-[recomp-ui](https://github.com/mstan/recomp-ui).
+**Wild 9 Recompiled**
 
-Wild 9 is a side-scrolling action/platformer developed by the creators of Earthworm Jim. You play as Wex Major, the last free member of the "Wild 9" team, on a mission to rescue his eight kidnapped teammates from the evil Karn.
+This project is a native PC port of the classic PlayStation title **Wild 9** (1998, developed by Shiny Entertainment and published by Interplay). It is built through static recompilation powered by [psxrecomp](https://github.com/mstan/psxrecomp) and [recomp-ui](https://github.com/mstan/recomp-ui).
 
-| | |
+Rather than running an emulator, this statically translates the original MIPS game binary directly into native C. The result is smooth performance, true widescreen display, high-resolution rendering, PGXP precision geometry correction that fixes original PS1 polygon jitter and texture distortion, while preserving the original game physics and mechanics.
+
+| Title | Wild 9 |
 |---|---|
-| Players | 1 |
-| Region | USA |
-| Publisher | Interplay |
-| Year | 1998 |
+| Platform | PC (Windows / Linux / macOS) |
+| Original Release | 1998 (Interplay / Shiny Entertainment) |
+| Region | NTSC-U (USA - SLUS-00425) |
+| Enhancements | Native 60 FPS, Widescreen, PGXP Precision Geometry, OpenBIOS |
 
-Scaffolded with the New Project Layout. See
-`psxrecomp/docs/GAME_PROJECT_SETUP.md` for the full flow.
+---
 
-<!-- retcomm-readme-launcher -->
+## Getting Started (How to Play)
+
+Getting the game running is quick and painless, **this release uses OpenBIOS** (the free, open-source PS1 BIOS from PCSX-Redux), meaning you do **not** need to hunt down or dump a proprietary Sony BIOS to start playing. (Though you can still provide an authentic retail SCPH dump if you prefer).
+
+### Prerequisites
+- A legally owned copy of **Wild 9 (USA)** in `.cue` format.
+- Keep your `.cue` and all referenced `.bin` / audio tracks together in the same directory.
+
+### Setup Steps
+
+1. **Extract the archive:** Extract the complete setup ZIP into a normal, writable folder (avoid directories that require administrator rights like `C:\Program Files`).
+2. **Launch the setup wizard:** Start `Wild9_Recompiled` (`Wild9_Recompiled.exe` on Windows).
+3. **Select your disc image:** In the wizard, browse and select your Wild 9 `.cue` file.
+4. **BIOS:** OpenBIOS is built-in and selected by default, so you're ready to go immediately without hunting for external BIOS files.
+5. **Generate & rebuild:** Click **Generate & rebuild** and wait for the recompilation to finish. The game will automatically boot once it's done.
+
+### Platform Notes
+
+- **Windows:** The setup wizard can automatically download the portable build tools for you—no manual compiler setup required.
+- **Linux & macOS:** Please install standard build tools prior to running: CMake, Ninja, Python 3, and a C/C++ compiler (`gcc` or `clang`).
+
+---
+
 ## RetComM Launcher
 
-You can run this title **standalone** (release zip + the built-in recomp-ui
-Generate & Build flow), or manage installs, updates, ROM/BIOS wiring, and queued
-builds more intuitively with
-**[RetComM Launcher](https://github.com/TechnicallyComputers/RetComM-Launcher)** —
-the Retro Compilation Manager hub for self-compiling recomps.
+If you have multiple recomp titles or prefer a unified manager, you can also launch and manage this game with **[RetComM Launcher](https://github.com/TechnicallyComputers/RetComM-Launcher)**. It handles automated updates, queued builds, and toolchain sharing without having to repeat the setup wizard manually.
 
-[Downloads](https://github.com/TechnicallyComputers/RetComM-Launcher/releases) ·
-[Full README & features](https://github.com/TechnicallyComputers/RetComM-Launcher#readme)
+---
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/TechnicallyComputers/RetComM-Launcher/main/docs/screenshots/hub-and-game-launcher.png" alt="RetComM hub with a background build, next to a title’s recomp-ui launcher" width="720">
-</p>
+## Building from Source (Developers)
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/TechnicallyComputers/RetComM-Launcher/main/docs/screenshots/queue-and-background-build.png" alt="Background cmake build with titles queued" width="720">
-</p>
-
-RetComM checks for updates, rebuilds with existing build data when possible,
-shares the portable toolchain used by per-title launchers, and automates
-BIOS/ROM/save plumbing so you are not stuck repeating each game’s wizard by hand.
-<!-- /retcomm-readme-launcher -->
-
-## Legal
-
-You must own the original game. Disc images under `disc/` are gitignored and
-must never be committed. Retail BIOS dumps are not redistributed; OpenBIOS is
-used for Generate unless you supply your own SCPH locally.
-
-Default app icon: `assets/psxrecomp.ico` (and `.png` / `.svg`) — RetComM-themed controller mark from `psxrecomp/assets/`. Windows builds embed it via `APP_ICON`.
-
-Optional box art under `launcher_assets/img/` may come from
-[libretro-thumbnails](https://github.com/libretro-thumbnails/libretro-thumbnails)
-(`Named_Boxarts`); see `BOXART_SOURCE.txt` when present.
-
-## Quick start (dev)
+If you want to build or tinker with the project directly from source:
 
 ```bash
+# Clone the repository with submodules
+git clone --recursive https://github.com/plinkr/Wild9Recomp.git
+cd Wild9Recomp
+
+# Update submodules
 git submodule update --init --recursive
-./psxrecomp/tools/ci/build_emitters.sh
+
+# Generate recompiled game code from your disc image
 python3 psxrecomp/psxrecomp_cli.py generate \
-  --config game.toml --project-root . --disc disc/<your>.cue
+  --config game.toml \
+  --project-root . \
+  --disc "disc/Wild 9 (USA).cue"
+
+# Build runtime
 cmake -S . -B build-release -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build-release --target psx-runtime
 ```
 
-Zip prefix for CI artifacts: `wild9`.
-
-## Symbols
-
-Progressive map: `symbols.toml` → `python3 tools/sync_symbols.py` →
-`psx_symbols.h` (`PSX_FN_*`). See `psxrecomp/docs/SYMBOLS.md`.
-
-## Framework pins
-
-Submodule gitlinks (`psxrecomp`, optional `recomp-ui`, nested `recomp-net`)
-are authoritative. `framework_pins.txt` is an optional scaffold snapshot;
-release CI logs SHAs with `record_pins.sh` but builds whatever the gitlinks
-resolve to. Bump submodules deliberately — do not float on `main`/`master`
-in release CI.
-
-<!-- retcomm-readme-raid -->
 ---
 
-<p align="center">
-  <sub><b>R.A.I.D. — Retro AI Development</b> · a Discord for AI-assisted retro reverse-engineering, decomp &amp; recomp</sub>
-</p>
+## Licenses & Credits
 
-<p align="center">
-  <a href="https://discord.gg/Ad9BwSzctP"><img src=".github/raid-discord.png" alt="Join the Retro AI Development (R.A.I.D.) Discord" width="200"></a>
-</p>
-<!-- /retcomm-readme-raid -->
+This project is made possible thanks to incredible upstream work:
+
+- **Original Project Code:** Any code created by me in this repository is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+- **Framework:** [PSXRecomp](https://github.com/mstan/psxrecomp) is licensed under the **PolyForm Noncommercial 1.0.0 License**. See its `LICENSE` file. Copyright © 2026 Matthew Stanley; commercial licensing inquiries go to him at [https://1379.tech](https://1379.tech).
+- **Launcher:** [recomp-ui](https://github.com/mstan/recomp-ui) is licensed under the **MIT License**. Copyright (c) 2026 Matthew Stanley.
+- **BIOS:** This release uses [OpenBIOS](https://github.com/grumpycoders/pcsx-redux) from the PCSX-Redux project, licensed under the **MIT License** (Copyright (c) 2019 PCSX-Redux authors).
+
+Their licenses and dependency notices remain in the corresponding source directories.
+
+### Disclaimer
+
+This is an unofficial fan recompilation project. The original game and its trademarks belong to their respective owners (Shiny Entertainment / Interplay). No proprietary game assets or copyrighted Sony BIOS dumps are bundled or distributed with this repository.

@@ -1,0 +1,33 @@
+format_version = 6
+id = "wild9.enhancement.widescreen"
+version = "1.0.0"
+name = "Widescreen"
+author = "Wild9Recomp"
+description = "Enables 16:9 widescreen presentation in Wild 9."
+resolver = "declarative"
+save_compatibility = "shared"
+
+[[target]]
+game_id = "SLUS-00425"
+
+[[feature]]
+id = "widescreen"
+name = "Widescreen (16:9)"
+description = "Expands the horizontal field of view to 16:9 during gameplay."
+group = "Display"
+default_enabled = true
+
+[[option]]
+feature = "widescreen"
+id = "aspect"
+label = "Aspect ratio"
+type = "choice"
+default = "16:9"
+
+[[option.choice]]
+value = "16:9"
+label = "16:9 Widescreen"
+
+[[plugin]]
+feature = "widescreen"
+id = "wild9.widescreen"
