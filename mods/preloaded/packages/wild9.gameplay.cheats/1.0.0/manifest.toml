@@ -1,0 +1,76 @@
+format_version = 6
+id = "wild9.gameplay.cheats"
+version = "1.0.0"
+name = "Gameplay Cheats"
+author = "Wild9Recomp"
+description = "Optional gameplay cheats for Wild 9."
+resolver = "declarative"
+save_compatibility = "shared"
+
+[[target]]
+game_id = "SLUS-00425"
+
+[[feature]]
+id = "cheats"
+name = "Gameplay Cheats"
+description = "Toggleable gameplay cheats for Wild 9."
+group = "Gameplay"
+default_enabled = false
+
+[[option]]
+feature = "cheats"
+id = "infinite_lives"
+label = "Infinite Lives"
+description = "Restores lives to 3 when lost."
+group = "General"
+type = "boolean"
+default = "false"
+
+[[option]]
+feature = "cheats"
+id = "infinite_health"
+label = "Infinite Health"
+description = "Restores health to maximum (16) when taking damage."
+group = "General"
+type = "boolean"
+default = "false"
+
+[[option]]
+feature = "cheats"
+id = "infinite_missiles"
+label = "Infinite Missiles on Pick-Up"
+description = "Restores missiles to 3 on pick-up."
+group = "General"
+type = "boolean"
+default = "false"
+
+[[option]]
+feature = "cheats"
+id = "moon_jump"
+label = "Moon Jump"
+description = "Hold Jump (X) to float / rise indefinitely."
+group = "General"
+type = "boolean"
+default = "false"
+
+[[option]]
+feature = "cheats"
+id = "drench_infinite_health"
+label = "Infinite Health"
+description = "Restores health to maximum (17) in the Drench level."
+group = "Drench Level Codes"
+type = "boolean"
+default = "false"
+
+[[option]]
+feature = "cheats"
+id = "drench_moon_jump"
+label = "Moon Jump"
+description = "Hold Jump (X) to float / rise indefinitely in the Drench level."
+group = "Drench Level Codes"
+type = "boolean"
+default = "false"
+
+[[plugin]]
+feature = "cheats"
+id = "wild9.cheats"

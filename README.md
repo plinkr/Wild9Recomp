@@ -55,8 +55,36 @@ Getting the game running is quick and painless, **this release uses OpenBIOS** (
 
 ### Platform Notes
 
-- **Windows:** The setup wizard can automatically download the portable build tools for you—no manual compiler setup required.
-- **Linux & macOS:** Please install standard build tools prior to running: CMake, Ninja, Python 3, and a C/C++ compiler (`gcc` or `clang`).
+- **Windows:** The setup wizard can automatically download the portable build tools for you, no manual compiler setup required.
+- **Linux & macOS:** Please install standard build tools prior to running: CMake, Ninja, Python 3.12 or newer, and a C/C++ compiler (`gcc` or `clang`).
+
+---
+
+## Cheats
+
+### In-Game (Controller Codes)
+
+- **Full Health:** Pause the game and press `R1`, `Triangle`, `L1`, `Left`, `Triangle`, `Circle`, `X`.
+- **Level Select:** Pause the game and press `Up`, `Left`, `Down`, `R2`, `Right`, `Square`, `X`.
+- **Red Beam Mode:** Pause the game and press `Right`, `Up`, `Left`, `Circle`, `Up`, `Circle`, `Circle`.
+- **Ten Additional Grenades:** Pause the game and press `R1`, `X`, `R1`, `Right`, `Square`, `Right`, `Square`.
+- **Ten Additional Missiles:** Pause the game and press `X`, `Circle`, `R1`, `Right`, `Triangle`, `X`, `Triangle`.
+
+### Built-in Cheats via Launcher (Mods)
+
+Alternatively, you don't have to enter button codes every time. When you start the game executable (`Wild9_Recompiled` or `Wild9_Recompiled.exe` on Windows), go to the **Mods** tab in the launcher before booting the game. You can enable the **Gameplay Cheats** mod and toggle individual cheat options:
+
+**General:**
+- **Infinite Lives:** Automatically restores your lives count to 3 when lost.
+- **Infinite Health:** Automatically restores health back to full (16) upon taking damage.
+- **Infinite Missiles on Pick-Up:** Keeps missile ammunition at 3 once you pick them up.
+- **Moon Jump:** Hold Jump (`X`) to float and ascend indefinitely.
+
+**Drench Level Codes:**
+- **Infinite Health (Drench):** Automatically restores health back to maximum (17) in the Drench level.
+- **Moon Jump (Drench):** Hold Jump (`X`) to float and ascend indefinitely in the Drench level.
+
+All cheats are disabled by default so you can choose exactly which ones to enable for your playthrough.
 
 ---
 
