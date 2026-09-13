@@ -72,6 +72,9 @@ Getting the game running is quick and painless, **this release uses OpenBIOS** (
 
 ### Built-in Cheats via Launcher (Mods)
 
+> [!WARNING]
+> **Warning!** Enabling these types of mods/cheats (similar to GameShark codes) **WILL BREAK THE GAME** or cause unexpected glitches/behavior during gameplay. Use them at your own risk.
+
 Alternatively, you don't have to enter button codes every time. When you start the game executable (`Wild9_Recompiled` or `Wild9_Recompiled.exe` on Windows), go to the **Mods** tab in the launcher before booting the game. You can enable the **Gameplay Cheats** mod and toggle individual cheat options:
 
 **General:**
