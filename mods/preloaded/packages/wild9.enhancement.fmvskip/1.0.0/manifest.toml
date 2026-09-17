@@ -1,0 +1,50 @@
+format_version = 6
+id = "wild9.enhancement.fmvskip"
+version = "1.0.0"
+name = "Intro FMV Skip"
+author = "Wild9Recomp"
+description = "Press Start (configurable) during an opening logo to skip it and the remaining opening logos. Uses the game's existing movie completion and cleanup path; later movies are unaffected."
+resolver = "declarative"
+save_compatibility = "shared"
+
+[[target]]
+game_id = "SLUS-00425"
+
+[[feature]]
+id = "fmv_skip"
+name = "Intro FMV Skip"
+description = "Press the configured button during an opening movie to skip it; the press also skips the remaining opening movies."
+group = "Quality of Life"
+default_enabled = false
+
+[[option]]
+feature = "fmv_skip"
+id = "skip_button"
+label = "Skip button"
+description = "Controller button that skips the opening movies."
+type = "choice"
+default = "start"
+
+[[option.choice]]
+value = "start"
+label = "Start"
+
+[[option.choice]]
+value = "cross"
+label = "Cross"
+
+[[option.choice]]
+value = "square"
+label = "Square"
+
+[[option.choice]]
+value = "triangle"
+label = "Triangle"
+
+[[option.choice]]
+value = "select"
+label = "Select"
+
+[[plugin]]
+feature = "fmv_skip"
+id = "wild9.fmvskip"

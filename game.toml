@@ -23,6 +23,7 @@ known_crc32 = ["c6f94075"]
 seeds = "seeds/ghidra_funcs.txt"
 out_dir = "generated"
 strict = true
+mod_function_entry_funcs = ["0x8005706C", "0x80056E80", "0x80057024"]
 
 [runtime]
 window_title = "Wild 9 Recompiled"
