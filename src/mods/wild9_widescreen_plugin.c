@@ -14,14 +14,6 @@
 #define W9_GRID_START_B_ADDR    0x80013B98u
 #define W9_GRID_START_B_WORD    0x2522FFE0u
 
-#define W9_INNER_CULL_ADDR      0x8001A748u
-#define W9_INNER_CULL_WORD      0x36318000u
-#define W9_INNER_CULL_PATCH     0x36310000u
-
-#define W9_SHIFTED_CULL_ADDR    0x8001A6C0u
-#define W9_SHIFTED_CULL_WORD    0x2AC10000u
-#define W9_SHIFTED_CULL_PATCH   0x00000825u
-
 static uint32_t s_clip_base;
 static uint32_t s_clip_applied;
 static uint32_t s_tile_count_a;
@@ -85,36 +77,6 @@ static void w9_patch_imm16(uint32_t addr, uint32_t vanilla,
     *applied = want;
 }
 
-static void w9_patch_inner_cull(int32_t margin)
-{
-    uint32_t word = psx_mod_read_word(W9_INNER_CULL_ADDR);
-
-    if (word != W9_INNER_CULL_WORD && word != W9_INNER_CULL_PATCH)
-        return;
-
-    uint32_t want = margin > 0
-        ? W9_INNER_CULL_PATCH
-        : W9_INNER_CULL_WORD;
-
-    if (word != want)
-        psx_mod_write_code_word(W9_INNER_CULL_ADDR, want);
-}
-
-static void w9_patch_shifted_cull(int32_t margin)
-{
-    uint32_t word = psx_mod_read_word(W9_SHIFTED_CULL_ADDR);
-
-    if (word != W9_SHIFTED_CULL_WORD && word != W9_SHIFTED_CULL_PATCH)
-        return;
-
-    uint32_t want = margin > 0
-        ? W9_SHIFTED_CULL_PATCH
-        : W9_SHIFTED_CULL_WORD;
-
-    if (word != want)
-        psx_mod_write_code_word(W9_SHIFTED_CULL_ADDR, want);
-}
-
 static void wild9_widescreen_vblank(void)
 {
     if (!psx_mod_game_started())
@@ -139,8 +101,6 @@ static void wild9_widescreen_vblank(void)
     w9_patch_imm16(W9_GRID_START_B_ADDR, W9_GRID_START_B_WORD,
                    &s_grid_start_b, grid_imm);
 
-    w9_patch_inner_cull(margin);
-    w9_patch_shifted_cull(margin);
 }
 
 static void wild9_widescreen_activate(void)

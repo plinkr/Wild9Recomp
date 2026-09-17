@@ -1,10 +1,8 @@
 # Wild 9 Recompiled
 
-<!-- retcomm-readme-metrics -->
 [![GitHub downloads (all assets, all releases)](https://img.shields.io/github/downloads/plinkr/Wild9Recomp/total)](https://github.com/plinkr/Wild9Recomp/releases)
 [![GitHub downloads (latest release)](https://img.shields.io/github/downloads/plinkr/Wild9Recomp/latest/total)](https://github.com/plinkr/Wild9Recomp/releases/latest)
 [![GitHub release](https://img.shields.io/github/v/release/plinkr/Wild9Recomp)](https://github.com/plinkr/Wild9Recomp/releases/latest)
-<!-- /retcomm-readme-metrics -->
 
 <p align="center">
   <img src="launcher_assets/img/boxart.png" alt="Wild 9 Box Art" width="280">
@@ -14,17 +12,17 @@
   <p style="max-width:900px; margin:0 auto;">Screenshots (click a thumbnail to view full size):</p>
   <div style="margin-top:12px; overflow-x:auto; white-space:nowrap; padding:8px 4px; -webkit-overflow-scrolling:touch;">
     <a href="https://github.com/user-attachments/assets/7784e243-98aa-4e82-9107-4bdabb7146bc" target="_blank" rel="noopener">
-      <img src="https://github.com/user-attachments/assets/7784e243-98aa-4e82-9107-4bdabb7146bc" width="280" style="display:inline-block; margin-right:8px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.12);" alt="Level 1" />
+      <img src="https://github.com/user-attachments/assets/7784e243-98aa-4e82-9107-4bdabb7146bc" width="280" style="display:inline-block; margin-right:8px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.12);" alt="Level 4" />
     </a>
     <a href="https://github.com/user-attachments/assets/5e9e5a1a-76ab-438c-8e88-df57aa4a49e4" target="_blank" rel="noopener">
-      <img src="https://github.com/user-attachments/assets/5e9e5a1a-76ab-438c-8e88-df57aa4a49e4" width="280" style="display:inline-block; margin-right:8px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.12);" alt="Level 4" />
+      <img src="https://github.com/user-attachments/assets/5e9e5a1a-76ab-438c-8e88-df57aa4a49e4" width="280" style="display:inline-block; margin-right:8px; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,0.12);" alt="Level 1" />
     </a>
   </div>
 </div>
 
 **Wild 9 Recompiled**
 
-This project is a native PC port of the classic PlayStation title **Wild 9** (1998, developed by Shiny Entertainment and published by Interplay). It is built through static recompilation powered by [psxrecomp](https://github.com/mstan/psxrecomp) and [recomp-ui](https://github.com/mstan/recomp-ui).
+This project is a native PC port of the classic PlayStation title **Wild 9** (1998, developed by Shiny Entertainment and published by Interplay). It is built through static recompilation powered by [psxrecomp](https://github.com/RetroPortingToolKit/psxrecomp) and [recomp-ui](https://github.com/RetroPortingToolKit/recomp-ui).
 
 Rather than running an emulator, this statically translates the original MIPS game binary directly into native C. The result is smooth performance, true widescreen display, high-resolution rendering, PGXP precision geometry correction that fixes original PS1 polygon jitter and texture distortion, while preserving the original game physics and mechanics.
 
@@ -43,7 +41,7 @@ Getting the game running is quick and painless, **this release uses OpenBIOS** (
 
 ### Prerequisites
 - A legally owned copy of **Wild 9 (USA)** in `.cue` format.
-- Keep your `.cue` and all referenced `.bin` / audio tracks together in the same directory.
+- Keep your `.cue` and the referenced `.bin` / audio tracks together in the same directory.
 
 ### Setup Steps
 
@@ -127,8 +125,8 @@ cmake --build build-release --target psx-runtime
 This project is made possible thanks to incredible upstream work:
 
 - **Original Project Code:** Any code created by me in this repository is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
-- **Framework:** [PSXRecomp](https://github.com/mstan/psxrecomp) is licensed under the **PolyForm Noncommercial 1.0.0 License**. See its `LICENSE` file. Copyright © 2026 Matthew Stanley; commercial licensing inquiries go to him at [https://1379.tech](https://1379.tech).
-- **Launcher:** [recomp-ui](https://github.com/mstan/recomp-ui) is licensed under the **MIT License**. Copyright (c) 2026 Matthew Stanley.
+- **Framework:** [PSXRecomp](https://github.com/RetroPortingToolKit/psxrecomp) is licensed under the **PolyForm Noncommercial 1.0.0 License**. See its `LICENSE` file. Copyright © 2026 Matthew Stanley; commercial licensing inquiries go to him at [https://1379.tech](https://1379.tech).
+- **Launcher:** [recomp-ui](https://github.com/RetroPortingToolKit/recomp-ui) is licensed under the **MIT License**. Copyright (c) 2026 Matthew Stanley.
 - **BIOS:** This release uses [OpenBIOS](https://github.com/grumpycoders/pcsx-redux) from the PCSX-Redux project, licensed under the **MIT License** (Copyright (c) 2019 PCSX-Redux authors).
 
 Their licenses and dependency notices remain in the corresponding source directories.

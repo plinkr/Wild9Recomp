@@ -46,7 +46,28 @@ auto_screen_x = true
 a1_sites = ["0x8001BECC", "0x8001C21C", "0x80027038"]
 screen_w_imms = ["0x100", "0x101", "0x12C", "0x12D", "0x141"]
 screen_h_imms = ["0xC8", "0xC9", "0xDD"]
-slti_lower_sites = ["0x8001A6A4", "0x8001A6C0", "0x8001A6D4"]
+slti_lower_sites = ["0x8001A6A4", "0x8001A6D4"]
+sxy_x_lower_sites = [
+    "0x8001A6C0"
+]
+
+[[widescreen.cull.sxy]]
+kind = "tri"
+final_address = "0x8001A800"
+final_expected = "0x01610824"
+result_reg = 1
+vertex_regs = [8, 20, 11]
+fold_addresses = ["0x8001A7F0", "0x8001A7F8"]
+fold_expected = ["0x01110824", "0x02810824"]
+
+[[widescreen.cull.sxy]]
+kind = "quad"
+final_address = "0x8001A9C0"
+final_expected = "0x01210824"
+result_reg = 1
+vertex_regs = [8, 20, 11, 9]
+fold_addresses = ["0x8001A9B4", "0x8001A9B8", "0x8001A9BC"]
+fold_expected = ["0x01110824", "0x02810824", "0x01610824"]
 
 [controller]
 default_mode = "digital"
