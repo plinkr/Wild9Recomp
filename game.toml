@@ -14,16 +14,16 @@ out_dir = "disc"
 bin_name = "Wild 9 (USA).bin"
 cue_name = "Wild 9 (USA).cue"
 boot_exe = "SLUS_004.25"
-known_sizes = [578312112]
-known_md5 = ["1fb016f3a54d939a2cf473209ec24288"]
-known_sha1 = ["8603e46a1f8f69a0962fdb83f45d11b1e86ca9e3"]
-known_crc32 = ["c6f94075"]
+known_sizes = [ 578312112 ]
+known_md5 = [ "1fb016f3a54d939a2cf473209ec24288" ]
+known_sha1 = [ "8603e46a1f8f69a0962fdb83f45d11b1e86ca9e3" ]
+known_crc32 = [ "c6f94075" ]
 
 [recompiler]
 seeds = "seeds/ghidra_funcs.txt"
 out_dir = "generated"
 strict = true
-mod_function_entry_funcs = ["0x8005706C", "0x80056E80", "0x80057024"]
+mod_function_entry_funcs = [ "0x8005706C", "0x80056E80", "0x80057024" ]
 
 [runtime]
 window_title = "Wild 9 Recompiled"
@@ -41,34 +41,38 @@ pgxp_tolerance = 1.0
 native_wide = true
 full_2d = true
 gte_game_mode = true
+nw_backdrop = true
+clear_reveal = true
+
+[widescreen.backdrop]
+x_sites = [ "0x800134F0", "0x800134F8", "0x80013500", "0x80013508" ]
 
 [widescreen.cull]
 auto_screen_x = true
-a1_sites = ["0x8001BECC", "0x8001C21C", "0x80027038"]
-screen_w_imms = ["0x100", "0x101", "0x12C", "0x12D", "0x141"]
-screen_h_imms = ["0xC8", "0xC9", "0xDD"]
-slti_lower_sites = ["0x8001A6A4", "0x8001A6D4"]
-sxy_x_lower_sites = [
-    "0x8001A6C0"
-]
+a1_sites = [ "0x8001BECC", "0x8001C21C", "0x80027038" ]
+screen_w_imms = [ "0x100", "0x101", "0x12C", "0x12D", "0x141" ]
+screen_h_imms = [ "0xC8", "0xC9", "0xDD" ]
+slti_lower_sites = [ "0x8001A6A4", "0x8001A6D4" ]
+
+[[widescreen.cull.sxy_x_lower_sites]]
+address = "0x8001A6C0"
+expected = "0x2AC10000"
 
 [[widescreen.cull.sxy]]
 kind = "tri"
 final_address = "0x8001A800"
 final_expected = "0x01610824"
-result_reg = 1
-vertex_regs = [8, 20, 11]
-fold_addresses = ["0x8001A7F0", "0x8001A7F8"]
-fold_expected = ["0x01110824", "0x02810824"]
+vertex_regs = [ 8, 20, 11 ]
+fold_addresses = [ "0x8001A7F0", "0x8001A7F8" ]
+fold_expected = [ "0x01110824", "0x02810824" ]
 
 [[widescreen.cull.sxy]]
 kind = "quad"
 final_address = "0x8001A9C0"
 final_expected = "0x01210824"
-result_reg = 1
-vertex_regs = [8, 20, 11, 9]
-fold_addresses = ["0x8001A9B4", "0x8001A9B8", "0x8001A9BC"]
-fold_expected = ["0x01110824", "0x02810824", "0x01610824"]
+vertex_regs = [ 8, 20, 11, 9 ]
+fold_addresses = [ "0x8001A9B4", "0x8001A9B8", "0x8001A9BC" ]
+fold_expected = [ "0x01110824", "0x02810824", "0x01610824" ]
 
 [controller]
 default_mode = "digital"

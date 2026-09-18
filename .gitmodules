@@ -1,7 +1,7 @@
 [submodule "psxrecomp"]
 	path = psxrecomp
-	url = https://github.com/RetroPortingToolKit/psxrecomp.git
-	branch = master
+	url = https://github.com/plinkr/psxrecomp.git
+	branch = feature/widescreen-sxy-culling
 [submodule "recomp-ui"]
 	path = recomp-ui
 	url = https://github.com/RetroPortingToolKit/recomp-ui.git
