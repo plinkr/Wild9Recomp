@@ -1,31 +1,3 @@
-# Setup-host multi-platform release template for a PSXRecomp *game* repository.
-#
-# Install:
-#   mkdir -p .github/workflows
-#   cp psxrecomp/docs/ci/templates/setup-release.yml .github/workflows/release.yml
-# Then replace every YOUR_* token (or let setup_project / fill_tokens.py do it).
-# See docs/GAME_PROJECT_SETUP.md.
-#
-# Shared (do not fork these into the title):
-#   ./psxrecomp/.github/actions/{build-emitters,fetch-toolchain (optional embed),stage-setup-sdk}
-#   psxrecomp/tools/ci/*.sh
-#   psxrecomp/tools/{fetch_toolchain,stage_setup_sdk,bundle_mingw_dlls,package_setup_host}.sh
-#   psxrecomp/psxrecomp_cli.py  (CLI lives in the submodule — no psxrecomp-sdk/)
-#
-# Title-owned:
-#   CMake setup-host flags, thin scripts/package_setup_release.sh wrapper
-#
-# No private CI assets. No BIOS dumps. No generated/ required.
-# Do not set PSX_PGO in CI (PGO stays user-local after Generate).
-# Release hosts always build with PSX_HAVE_VULKAN (headers + glslc); runtime
-# still loads the ICD dynamically via SDL.
-#
-# workflow_dispatch: leave version empty to auto-bump patch (or choose bump).
-# Host-focused releases: CI never ships game C. Players Generate once; RetComM
-# Update reuses codegen-cache when ROM/BIOS/emitters match (cmake-only).
-# See docs/ci/HOST_ONLY_RELEASES.md. reuse_cached_emitters skips rebuilding
-# psxrecomp-game/bios when the psxrecomp SHA cache hits (host/UI bumps).
-
 name: Release builds
 
 on:
@@ -105,7 +77,6 @@ jobs:
           fi
           RAW="$(printf '%s' "${RAW}" | tr -d '[:space:]')"
           if [[ -z "${RAW}" ]]; then
-            # Prefer shared helper when present (optional); else inline bump.
             if [[ -x psxrecomp/tools/ci/normalize_version.sh ]]; then
               eval "$(bash psxrecomp/tools/ci/normalize_version.sh --next "${BUMP}" | grep -E '^(VERSION|TAG)=')"
               VER="${VERSION}"
@@ -148,6 +119,7 @@ jobs:
           echo "publish=${PUBLISH}" >>"$GITHUB_OUTPUT"
           echo "reuse_emitters=${REUSE}" >>"$GITHUB_OUTPUT"
           echo "Using version ${VER} (tag ${TAG}), publish=${PUBLISH}, reuse_emitters=${REUSE}"
+
   build:
     name: ${{ matrix.artifact }}
     needs: prepare
@@ -174,7 +146,6 @@ jobs:
       run:
         shell: ${{ matrix.shell }}
     env:
-      # Rename to match your packager (e.g. BPE_RELEASE_VERSION).
       RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
     steps:
       - name: Checkout
@@ -190,7 +161,6 @@ jobs:
           printf '%s\n' "${RELEASE_VERSION}" >VERSION
           echo "VERSION=$(cat VERSION)"
 
-      # Submodule gitlinks are the pin; this step only logs SHAs for the job.
       - name: Record framework revisions
         shell: bash
         run: bash psxrecomp/tools/ci/record_pins.sh
@@ -228,7 +198,6 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          # X11 + xtst required when FetchContent builds SDL3 (XTEST).
           sudo apt-get install -y --no-install-recommends \
             build-essential cmake ninja-build pkg-config \
             libsdl2-dev libgl1-mesa-dev libxtst-dev \
@@ -276,11 +245,6 @@ jobs:
           fi
           echo "Found ${HDR}"
 
-      # Ubuntu 24.04 has no libsdl3-dev; Windows MSYS ships SDL2. Setup-host
-      # therefore FetchContents the pinned SDL3 tarball. CMake's HTTP/2 download
-      # from github.com release assets intermittently dies with REFUSED_STREAM
-      # (curl status 56). Prefetch with curl --http1.1 and point FetchContent
-      # at the extracted tree (macOS uses brew sdl3 and skips this).
       - name: Cache SDL3 source
         if: runner.os != 'macOS'
         uses: actions/cache@v4
@@ -293,9 +257,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Use repo-relative paths for tar: Windows GITHUB_WORKSPACE is D:\…
-          # and GNU tar treats drive-letter abs paths as remote hosts
-          # ("Cannot connect to D"). Prefer prefetch_sdl3.sh when present.
           OUT=".cache/sdl3-src"
           sdl3_env() {
             local abs="${OUT}"
@@ -317,7 +278,6 @@ jobs:
             bash psxrecomp/tools/ci/prefetch_sdl3.sh --out-dir "${OUT}"
             exit 0
           fi
-          # Submodule may predate the helper — inline HTTP/1.1 prefetch.
           echo "prefetch_sdl3.sh missing; using inline curl --http1.1"
           mkdir -p .cache
           VER=3.4.10
@@ -328,7 +288,6 @@ jobs:
           echo "${SHA}  ${TAR}" | sha256sum -c -
           rm -rf "${OUT}.extracting"
           mkdir -p "${OUT}.extracting"
-          # --force-local: belt-and-suspenders if a path ever gains a colon.
           if tar --help 2>&1 | grep -q -- '--force-local'; then
             tar --force-local -xzf "${TAR}" -C "${OUT}.extracting"
           else
@@ -340,16 +299,12 @@ jobs:
           rm -rf "${OUT}.extracting"
           sdl3_env
 
-      # Windows: build emitters with llvm-mingw from cmake-clang-v1 (static CLI).
-      # Zip still omits toolchain/ — fetch is for the build machine only.
       - name: Fetch portable toolchain (Windows emitters)
         if: runner.os == 'Windows'
         uses: ./psxrecomp/.github/actions/fetch-toolchain
         with:
           artifact: ${{ matrix.artifact }}
 
-      # Host/UI-only bumps keep the same psxrecomp gitlink → cache hit skips
-      # rebuilding emitters (see reuse_cached_emitters / HOST_ONLY_RELEASES.md).
       - name: Emitter cache key
         id: emitter_cache
         shell: bash
@@ -377,7 +332,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Restored cache or fresh build must leave packager inputs in place.
           test -d build-recompiler
           find build-recompiler -type f \( -name 'psxrecomp-game*' -o -name 'psxrecomp-bios*' \) | head
           count="$(find build-recompiler -type f \( -name 'psxrecomp-game*' -o -name 'psxrecomp-bios*' \) | wc -l | tr -d ' ')"
@@ -406,9 +360,6 @@ jobs:
             EXTRA+=("-DCMAKE_C_COMPILER_LAUNCHER=ccache")
             EXTRA+=("-DCMAKE_CXX_COMPILER_LAUNCHER=ccache")
           fi
-          # Point CMake at Vulkan headers/glslc. Prefer VULKAN_SDK layout
-          # (runtime.cmake checks $VULKAN_SDK first); also seed CMAKE_PREFIX_PATH
-          # so find_path works after the empty-_vk_inc fix in runtime.cmake.
           if [[ "$(uname -s)" == "Darwin" ]]; then
             BREW_PREFIX="$(brew --prefix)"
             export PATH="${BREW_PREFIX}/bin${PATH:+:${PATH}}"
@@ -444,40 +395,10 @@ jobs:
             EXTRA+=("-DGLSLC_EXE=$(command -v glslc)")
           fi
           JOBS="$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)"
-          # Emitters may have set PSXRECOMP_TOOLCHAIN_DIR (llvm-mingw) via
-          # GITHUB_ENV. Clear it before the MSYS2 g++ setup-host configure so
-          # pack lib/ cannot win -L for -static-libstdc++ (codecvt link errors).
           if [[ "$(uname -s)" == MINGW* || "$(uname -s)" == MSYS* ]]; then
             unset PSXRECOMP_TOOLCHAIN_DIR TOOLCHAIN_DIR BPE_TOOLCHAIN_DIR RETCOMM_TOOLCHAIN_DIR || true
             unset CMAKE_PREFIX_PATH SDL3_DIR ZLIB_ROOT || true
           fi
-          # Setup host: no game C, no BIOS backends linked. clear_generated.sh
-          # already wiped generated/; end users Generate OpenBIOS (+ optional
-          # SCPH1001) locally via the wizard, then rebuild.
-          # Prefer -DPSXRECOMP_FORCE_SETUP_HOST=ON (psxrecomp_add_game_runtime).
-          # Legacy -DYOURGAME_FORCE_SETUP_HOST=ON still works if the title wires it.
-          # PSX_SETUP_WIZARD is required with FORCE_SETUP_HOST (CMakeLists
-          # ENABLE_SETUP_WIZARD + -D here). Without it the zip never opens
-          # first-run / Generate & rebuild.
-          # Title root codegen_setup.c must define
-          # psx_game_codegen_forward_if_built (see codegen_setup.c.in) or link
-          # fails — main.cpp always calls it, including setup-host CI builds.
-          # Netplay titles: set PSX_NETPLAY ON in CMakeLists *before*
-          # include(runtime.cmake). ENABLE_NETPLAY_IF_PRESENT alone is too late
-          # (option() already cached OFF) and psx_netplay_sched.c still needs
-          # recomp_net/session.h. Also add -DPSX_NETPLAY=ON to this cmake
-          # invocation for CI belt-and-suspenders (do not leave it commented
-          # mid-continuation — that breaks the shell line).
-          # With PSX_NETPLAY, runtime.cmake defaults RNET_ENABLE_ICE=ON.
-          # recomp-net FetchContents libjuice via a pinned URL tarball (not
-          # git clone) so AppImage / mismatched libcurl hosts still configure.
-          # Offline: vendor under psxrecomp/lib/recomp-net/third_party/libjuice
-          # or pass -DRNET_LIBJUICE_ROOT=… / -DRNET_ENABLE_ICE=OFF.
-          # Add title-specific -D flags here if needed (e.g. -DMOTK_NATIVE=OFF).
-          # Netplay titles: also pass -DPSX_NETPLAY=ON here (belt-and-suspenders
-          # when CMakeLists already FORCE-caches it before include(runtime.cmake)).
-          # Prefer pre-fetched SDL3 (see Prefetch SDL3 source) so configure does
-          # not call CMake file(DOWNLOAD) against GitHub release assets.
           if [[ -n "${PSX_SDL3_SOURCE_DIR:-}" && -f "${PSX_SDL3_SOURCE_DIR}/CMakeLists.txt" ]]; then
             EXTRA+=("-DFETCHCONTENT_SOURCE_DIR_SDL3=${PSX_SDL3_SOURCE_DIR}")
           elif [[ -f "${GITHUB_WORKSPACE}/.cache/sdl3-src/CMakeLists.txt" ]]; then
@@ -494,8 +415,6 @@ jobs:
             echo "::error::CMake did not enable PSX_HAVE_VULKAN (see configure log)"
             exit 1
           fi
-          # Ninja does not emit flags.make (Makefiles generator only). Probe
-          # whichever compile-flag artifact exists for PSX_HAVE_VULKAN.
           FOUND_VK_DEFINE=0
           for f in \
               build-ci/build.ninja \
@@ -512,7 +431,6 @@ jobs:
             exit 1
           fi
           cmake --build build-ci --target psx-runtime -j"${JOBS}"
-          # Lobby list pin must match RELEASE_VERSION (package_setup_host enforces).
           STAMP=""
           for cand in \
               build-ci/psx_game_version.txt \
@@ -522,7 +440,6 @@ jobs:
             if [[ -f "${cand}" ]]; then STAMP="${cand}"; break; fi
           done
           if [[ -z "${STAMP}" ]]; then
-            # Fallback: stamp next to the host exe
             STAMP="$(find build-ci -name psx_game_version.txt -type f 2>/dev/null | head -n1 || true)"
           fi
           if [[ -z "${STAMP}" || ! -f "${STAMP}" ]]; then
@@ -554,8 +471,6 @@ jobs:
             export BPE_RUNTIME_BIN_DIR=/mingw64/bin
           fi
           export RELEASE_VERSION
-          # Lean zip (no embedded toolchain/). RetComM / wizard download
-          # cmake-clang-v1; pass --embed-toolchain only for offline-first packs.
           scripts/package_setup_release.sh build-ci "${{ matrix.artifact }}" build-recompiler
           ls -la dist/
 
@@ -563,11 +478,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Gate the release on the catalog actually being inside the zip.
-          # The packager stages mods/ by default, but this shipped broken for
-          # a long time precisely because nothing checked: the Mods page was
-          # empty in every release and the build logs looked fine. Assert the
-          # artifact, not the intent.
           ZIP=$(ls dist/wild9-*-"${{ matrix.artifact }}".zip | head -1)
           echo "checking ${ZIP}"
           MANIFESTS=$(unzip -l "${ZIP}" | grep -c 'mods/bundled/.*/manifest\.toml' || true)
@@ -577,24 +487,14 @@ jobs:
             unzip -l "${ZIP}" | head -40 >&2
             exit 1
           fi
-          # Per-machine mod state must never ship: preloaded catalogs are
-          # default-disabled, so a leaked state.toml makes one machine's
-          # selections everybody's defaults.
           if unzip -l "${ZIP}" | grep -q 'state\.toml'; then
             echo "::error::release zip contains mods/state.toml (per-machine state)" >&2
             exit 1
           fi
-          # Same rule, other half: mods/installed/ is the launcher-owned tree of
-          # .psxmod archives a developer installed as a player would. Only
-          # mods/bundled/ is build output, and only build output ships.
           if unzip -l "${ZIP}" | grep -q 'mods/installed/'; then
             echo "::error::release zip contains mods/installed (per-machine installs)" >&2
             exit 1
           fi
-          # Developer-channel packages are unfinished work that ships with
-          # local builds only. The packager drops them under CI automatically
-          # (it keys off $CI); assert the outcome so a future change to that
-          # default cannot quietly publish in-progress mods.
           if unzip -p "${ZIP}" 'mods/**/manifest.toml' 2>/dev/null \
                | grep -Eq '^[[:space:]]*channel[[:space:]]*=[[:space:]]*"developer"'; then
             echo "::error::release zip contains developer-channel mod packages" >&2
@@ -605,7 +505,6 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          # Artifact name uses the title zip prefix (e.g. bpe, motk).
           name: wild9-${{ matrix.artifact }}
           path: dist/wild9-*-${{ matrix.artifact }}.zip
           if-no-files-found: error
@@ -617,7 +516,7 @@ jobs:
     if: needs.prepare.outputs.publish == 'true'
     runs-on: ubuntu-24.04
     steps:
-      - name: Checkout (for tagging on workflow_dispatch)
+      - name: Checkout (for tagging + git-cliff)
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -650,14 +549,44 @@ jobs:
             git push origin "refs/tags/${TAG}"
           fi
 
+      - name: Determine previous tag
+        id: prevtag
+        env:
+          TAG: ${{ needs.prepare.outputs.tag }}
+        run: |
+          set -euo pipefail
+          git fetch --tags --force --quiet || true
+          PREV="$(git describe --tags --abbrev=0 --match 'v[0-9]*' "${TAG}^" 2>/dev/null || true)"
+          if [[ -z "${PREV}" ]]; then
+            PREV="$(git rev-list --max-parents=0 HEAD | tail -n1)"
+            echo "No previous tag; using first commit ${PREV}"
+          else
+            echo "Previous tag: ${PREV}"
+          fi
+          echo "prev=${PREV}" >>"$GITHUB_OUTPUT"
+
+      - name: Install git-cliff
+        uses: taiki-e/install-action@v2
+        with:
+          tool: git-cliff
+
+      - name: Generate release notes with git-cliff
+        env:
+          TAG: ${{ needs.prepare.outputs.tag }}
+          PREV_TAG: ${{ steps.prevtag.outputs.prev }}
+        run: |
+          set -euo pipefail
+          git-cliff -c ./cliff.toml "${PREV_TAG}..${TAG}" -o release-notes.md
+          echo "----- release-notes.md -----"
+          cat release-notes.md
+
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.prepare.outputs.tag }}
-          # Quoted: titles may contain ':' (e.g. "Marvel vs. Capcom: …").
           name: "Wild9 Recompiled ${{ needs.prepare.outputs.tag }}"
+          body_path: release-notes.md
           files: |
             dist/wild9-*.zip
-          generate_release_notes: true
           fail_on_unmatched_files: true
           target_commitish: ${{ github.sha }}

@@ -1,0 +1,22 @@
+format_version = 6
+id = "wild9.debug.overlay"
+version = "1.0.0"
+name = "Debug Overlay"
+author = "Wild9Recomp"
+description = "Reveals the Debug Overlay that is hidden in the original 1998 Wild 9 game. This patch only makes the overlay visible."
+resolver = "declarative"
+save_compatibility = "shared"
+
+[[target]]
+game_id = "SLUS-00425"
+
+[[feature]]
+id = "debug_overlay"
+name = "Debug Overlay"
+description = "Shows the Debug Overlay that is hidden in the original 1998 game, drawing memory usage, processor and GPU usage, model and actor counts, polygon counts and WEX path information. This patch only makes the overlay visible; it adds no new drawing or gameplay behavior. Enabling this feature is all that is needed."
+group = "Debug"
+default_enabled = false
+
+[[plugin]]
+feature = "debug_overlay"
+id = "wild9.debug_overlay"
