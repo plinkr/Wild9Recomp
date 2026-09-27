@@ -1,5 +1,7 @@
 # Wild 9 Recompiled
 
+Static recompilation and native PC port of Wild 9 (PlayStation 1, NTSC-U SLUS-00425).
+
 [![GitHub downloads (all assets, all releases)](https://img.shields.io/github/downloads/plinkr/Wild9Recomp/total)](https://github.com/plinkr/Wild9Recomp/releases)
 [![GitHub downloads (latest release)](https://img.shields.io/github/downloads/plinkr/Wild9Recomp/latest/total)](https://github.com/plinkr/Wild9Recomp/releases/latest)
 [![GitHub release](https://img.shields.io/github/v/release/plinkr/Wild9Recomp)](https://github.com/plinkr/Wild9Recomp/releases/latest)
@@ -20,18 +22,23 @@
   </div>
 </div>
 
-**Wild 9 Recompiled**
 
-This project is a native PC port of the classic PlayStation title **Wild 9** (1998, developed by Shiny Entertainment and published by Interplay). It is built through static recompilation powered by [psxrecomp](https://github.com/RetroPortingToolKit/psxrecomp) and [recomp-ui](https://github.com/RetroPortingToolKit/recomp-ui).
+## Overview
 
-Rather than running an emulator, this statically translates the original MIPS game binary directly into native C. The result is smooth performance, true widescreen display, high-resolution rendering, PGXP precision geometry correction that fixes original PS1 polygon jitter and texture distortion, while preserving the original game physics and mechanics.
+Wild 9 is a 2.5D platform action game developed by Shiny Entertainment and published by Interplay in 1998 for the Sony PlayStation. This project provides a native PC port of the original NTSC-U release (SLUS-00425) by statically translating the MIPS R3000A machine code from the game executable into native C source files.
 
-| Title | Wild 9 |
-|---|---|
-| Platform | PC (Windows / Linux / macOS) |
-| Original Release | 1998 (Interplay / Shiny Entertainment) |
-| Region | NTSC-U (USA - SLUS-00425) |
-| Enhancements | Native 60 FPS, Widescreen, PGXP Precision Geometry, OpenBIOS |
+The recompiled C code links directly against a hardware-accurate runtime environment provided by [psxrecomp](https://github.com/RetroPortingToolKit/psxrecomp) and [recomp-ui](https://github.com/RetroPortingToolKit/recomp-ui). The runtime provides native display output, widescreen viewport expansion, PGXP geometric precision correction, an integrated OpenBIOS implementation, and modding plugins while preserving the original game logic, physics, and timing.
+
+## Features
+
+- Static binary recompilation: Translates the original SLUS_004.25 executable directly into native C code.
+- Native PC execution: Runs natively on 64-bit Linux, Windows, and macOS without an emulator.
+- Integrated OpenBIOS: Ships with the open-source PCSX-Redux OpenBIOS implementation; proprietary Sony BIOS dumps are optional.
+- Geometry and texturing fixes: Employs PGXP precision geometry and perspective-correct texturing to eliminate PlayStation affine texture warping and polygon jitter.
+- Widescreen rendering: Native widescreen expansion with automated 2D backdrop stretching and SXY screen culling adjustments.
+- Frame rate presentation mod: Optional temporal frame blending mod supporting 60, 120, 144, 165 FPS, and display refresh targets on OpenGL while maintaining original 59.94 Hz simulation cadence.
+- Video skip mod: Configurable controller button shortcut to skip introductory FMV sequences and logos.
+- Debug overlay: Mod plugin exposing the native engine diagnostic overlay for memory, GPU, and rendering performance metrics.
 
 ---
 
@@ -60,13 +67,14 @@ Getting the game running is quick and painless, **this release uses OpenBIOS** (
 
 ## Cheats
 
-### In-Game (Controller Codes)
+### In-Game Controller Codes
 
-- **Full Health:** Pause the game and press `R1`, `Triangle`, `L1`, `Left`, `Triangle`, `Circle`, `X`.
-- **Level Select:** Pause the game and press `Up`, `Left`, `Down`, `R2`, `Right`, `Square`, `X`.
-- **Red Beam Mode:** Pause the game and press `Right`, `Up`, `Left`, `Circle`, `Up`, `Circle`, `Circle`.
-- **Ten Additional Grenades:** Pause the game and press `R1`, `X`, `R1`, `Right`, `Square`, `Right`, `Square`.
-- **Ten Additional Missiles:** Pause the game and press `X`, `Circle`, `R1`, `Right`, `Triangle`, `X`, `Triangle`.
+Original cheat sequences can be entered on the controller while paused:
+- Full Health: Pause, then press `R1`, `Triangle`, `L1`, `Left`, `Triangle`, `Circle`, `Cross`.
+- Unlock All Levels: Pause, then press `Up`, `Left`, `Down`, `R2`, `Right`, `Square`, `Cross`.
+- Red Beam Mode: Pause, then press `Right`, `Up`, `Left`, `Circle`, `Up`, `Circle`, `Circle`.
+- Ten Additional Grenades: Pause, then press `R1`, `Cross`, `R1`, `Right`, `Square`, `Right`, `Square`.
+- Ten Additional Missiles: Pause, then press `Cross`, `Circle`, `R1`, `Right`, `Triangle`, `Cross`, `Triangle`.
 
 ### Built-in Cheats via Launcher (Mods)
 
@@ -86,6 +94,23 @@ Alternatively, you don't have to enter button codes every time. When you start t
 - **Moon Jump (Drench):** Hold Jump (`X`) to float and ascend indefinitely in the Drench level.
 
 All cheats are disabled by default so you can choose exactly which ones to enable for your playthrough.
+
+---
+
+### Preloaded Mods
+
+Enable and configure mod plugins from the Mods tab in the launcher:
+
+- Widescreen (`wild9.enhancement.widescreen`):
+  Expands the horizontal field of view to 16:9 during gameplay, adjusting 2D background tile column counts, camera clip bounds, and primitive culling margins.
+- Wild 9 Frame Rate (`wild9.enhancement.frame-interpolation`):
+  Enables OpenGL temporal frame blending between completed frames. Configurable to 60, 120, 144, 165 FPS, or unconstrained display refresh. Game physics, timers, and audio remain locked to 59.94 Hz.
+- FMV Skip (`wild9.enhancement.fmvskip`):
+  Skips intro videos on button press (defaults to `Start`, configurable to `Cross`, `Square`, `Triangle`, or `Select`).
+- Debug Overlay (`wild9.debug.overlay`):
+  Activates the game's internal diagnostic overlay displaying CPU, GPU, memory, and draw call counters.
+- Gameplay Cheats (`wild9.gameplay.cheats`):
+  Individual toggles for infinite lives, infinite health, infinite missiles, and moon jump.
 
 ---
 

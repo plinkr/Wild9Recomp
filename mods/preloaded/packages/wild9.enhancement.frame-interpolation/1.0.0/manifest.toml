@@ -1,0 +1,72 @@
+format_version = 6
+id = "wild9.enhancement.frame-interpolation"
+version = "1.0.0"
+name = "Wild 9 Frame Rate"
+author = "Wild9Recomp"
+description = "Presentation-only temporal frame blending. Game logic, physics, timers, and audio remain at their stock 59.94 Hz cadence."
+resolver = "declarative"
+save_compatibility = "shared"
+
+[[target]]
+game_id = "SLUS-00425"
+
+[[feature]]
+id = "frame-interpolation"
+name = "Temporal Frame Blending"
+description = "Blend completed game frames at the selected presentation rate without accelerating gameplay, timers, or audio. This is not motion-vector frame generation. Requires OpenGL."
+group = "Frame Rate"
+default_enabled = false
+
+[[option]]
+feature = "frame-interpolation"
+id = "rate"
+label = "Presentation rate"
+description = "Follow the display for even cadence, or choose a fixed rate such as 120 FPS. The original game simulation remains untouched. Requires OpenGL."
+group = "Frame Rate"
+type = "choice"
+default = "120"
+
+[[option.choice]]
+value = "60"
+label = "60 FPS"
+
+[[option.choice]]
+value = "120"
+label = "120 FPS"
+
+[[option.choice]]
+value = "144"
+label = "144 FPS"
+
+[[option.choice]]
+value = "165"
+label = "165 FPS"
+
+[[option.choice]]
+value = "uncapped"
+label = "Display refresh"
+
+[[plugin]]
+feature = "frame-interpolation"
+id = "wild9.framerate.60"
+when = { rate = "60" }
+
+[[plugin]]
+feature = "frame-interpolation"
+id = "wild9.framerate.120"
+when = { rate = "120" }
+
+[[plugin]]
+feature = "frame-interpolation"
+id = "wild9.framerate.144"
+when = { rate = "144" }
+
+[[plugin]]
+feature = "frame-interpolation"
+id = "wild9.framerate.165"
+when = { rate = "165" }
+
+[[plugin]]
+feature = "frame-interpolation"
+id = "wild9.framerate.uncapped"
+when = { rate = "uncapped" }
