@@ -1,0 +1,21 @@
+# Force LF line endings for consistency across Linux, macOS, and Windows CI
+* text=auto eol=lf
+*.toml text eol=lf
+*.c text eol=lf
+*.h text eol=lf
+*.sh text eol=lf
+*.py text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.ini text eol=lf
+
+# Binary files
+*.bin binary
+*.cue text eol=lf
+*.iso binary
+*.AppImage binary
+*.zip binary
+*.tar.gz binary

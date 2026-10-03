@@ -8,7 +8,7 @@ psx_product_verify_symbol() {
     _ps_what=$4
     shift 4
     for _ps_sym in "$@"; do
-        if ! grep -qE "[${_ps_class}] ${_ps_sym}\$" "$_ps_syms"; then
+        if ! grep -qE "[${_ps_class}][[:space:]]+_?${_ps_sym}\$" "$_ps_syms"; then
             echo "  FAIL: ${_ps_exe} does not define ${_ps_sym}." >&2
             echo "        Expected evidence: ${_ps_what}" >&2
             return 1
@@ -22,7 +22,7 @@ psx_product_verify_game_code() {
     psx_product_verify_symbol "$_pg_exe" "$_pg_syms" 'TtWw' \
         'the recompiled game code is linked in. Without it the launcher opens' \
         func_80010000 func_8005F7C8 || return 1
-    echo "  game code verified: $(grep -cE '[TtWw] func_80' "$_pg_syms") linked game functions"
+    echo "  game code verified: $(grep -cE '[TtWw][[:space:]]+_?func_80' "$_pg_syms") linked game functions"
 }
 
 psx_product_verify_bios_backend() {
@@ -61,7 +61,13 @@ psx_verify_product_build() {
     _pv_exe=$1
     _pv_log=$2
 
-    if [ ! -x "$_pv_exe" ]; then
+    if [ -f "${_pv_exe}.exe" ] && [ ! -f "$_pv_exe" ]; then
+        _pv_exe="${_pv_exe}.exe"
+    elif [ -f "${_pv_exe}.exe" ] && [ "${OS:-}" = "Windows_NT" ]; then
+        _pv_exe="${_pv_exe}.exe"
+    fi
+
+    if [ ! -x "$_pv_exe" ] && [ ! -f "$_pv_exe" ]; then
         echo "  FAIL: no executable at ${_pv_exe}." >&2
         return 1
     fi

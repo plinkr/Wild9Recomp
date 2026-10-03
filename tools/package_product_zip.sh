@@ -15,7 +15,7 @@ version=${RELEASE_VERSION:-$(tr -d " \t\r\n" < "$root/VERSION")}
 version=${version#v}
 [ -n "$version" ] || { echo "VERSION is empty" >&2; exit 1; }
 
-output=${OUTPUT:-"$root/dist/wild9-$version-product-$artifact.zip"}
+output=${OUTPUT:-"$root/dist/wild9-$version-$artifact.zip"}
 bios_build=${PSXRECOMP_BIOS_BUILD:-build-recompiler}
 
 . "$fw/tools/release_overlay_stage.sh"
@@ -61,6 +61,9 @@ if [ "${SKIP_BUILD:-0}" != 1 ]; then
     if [ "${CCACHE:-0}" = 1 ] && command -v ccache >/dev/null 2>&1; then
         extra="-DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
     fi
+    # EXTRA_CMAKE_ARGS is intentionally word-split: callers pass whole
+    # -Dfoo=bar tokens (e.g. the macOS deployment target).
+    extra_args=${EXTRA_CMAKE_ARGS:-}
     sdl_args=""
     if [ -n "${PSX_SDL3_SOURCE_DIR:-}" ] && [ -f "${PSX_SDL3_SOURCE_DIR}/CMakeLists.txt" ]; then
         sdl_dir=${PSX_SDL3_SOURCE_DIR}
@@ -72,6 +75,10 @@ if [ "${SKIP_BUILD:-0}" != 1 ]; then
         sdl_args="-DFETCHCONTENT_SOURCE_DIR_SDL3=${sdl_dir}"
         echo "using prebuilt SDL3 source at ${sdl_dir}"
     fi
+    if [ "${OS:-}" = "Windows_NT" ] || [ -n "${MSYSTEM:-}" ]; then
+        unset PSXRECOMP_TOOLCHAIN_DIR TOOLCHAIN_DIR BPE_TOOLCHAIN_DIR RETCOMM_TOOLCHAIN_DIR || true
+        unset CMAKE_PREFIX_PATH SDL3_DIR ZLIB_ROOT || true
+    fi
     if cmake -S "$root" -B "$build_dir" -G Ninja \
         -DCMAKE_BUILD_TYPE=Release \
         -DPSX_DEBUG_TOOLS=OFF \
@@ -79,7 +86,7 @@ if [ "${SKIP_BUILD:-0}" != 1 ]; then
         -DWILD9_SETUP_WIZARD=OFF \
         -DPSXRECOMP_FORCE_SETUP_HOST=OFF \
         -DPSXRECOMP_REQUIRE_GAME_C=ON \
-        $extra $sdl_args > "$build_dir-configure.log" 2>&1; then
+        $extra $extra_args $sdl_args > "$build_dir-configure.log" 2>&1; then
         cat "$build_dir-configure.log"
     else
         configure_status=$?
@@ -98,7 +105,16 @@ cmake --build "$build_dir" --target psx-runtime \
     -j "${BUILD_JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)}"
 
 . "$root/tools/product_build_verify.sh"
-psx_verify_product_build "$build_dir/Wild9_Recompiled" \
+
+# MinGW names the target Wild9_Recompiled.exe; everything else drops the suffix.
+# Check for .exe explicitly first so native tools receive the exact file path.
+if [ -f "$build_dir/Wild9_Recompiled.exe" ] || [ "${OS:-}" = "Windows_NT" ]; then
+    exe=$build_dir/Wild9_Recompiled.exe
+else
+    exe=$build_dir/Wild9_Recompiled
+fi
+
+psx_verify_product_build "$exe" \
                         "$build_dir-configure.log"
 
 case "$stage" in
@@ -106,19 +122,10 @@ case "$stage" in
     *) echo "Refusing unsafe stage path: $stage" >&2; exit 1 ;;
 esac
 rm -rf -- "$stage"
-mkdir -p "$stage"
+mkdir -p -- "$stage"
 
-exe=$build_dir/Wild9_Recompiled
-case "$exe" in
-    *.exe)
-        install -m 0755 "$exe" "$stage/Wild9_Recompiled.exe"
-        staged_exe=$stage/Wild9_Recompiled.exe
-        ;;
-    *)
-        install -m 0755 "$exe" "$stage/Wild9_Recompiled"
-        staged_exe=$stage/Wild9_Recompiled
-        ;;
-esac
+staged_exe=$stage/$(basename -- "$exe")
+install -m 0755 "$exe" "$staged_exe"
 
 cp -a "$build_dir/assets" "$stage/assets"
 cp -a "$build_dir/bios" "$stage/bios"
@@ -148,7 +155,11 @@ cp "$root/packaging/release/game.toml" "$stage/game.toml"
 cp "$root/game_options.toml" "$stage/game_options.toml"
 cp "$root/packaging/release/input.ini" "$stage/input.ini"
 cp "$root/packaging/release/START_HERE.txt" "$stage/START_HERE.txt"
-cp "$root/packaging/release/README-WINDOWS.txt" "$stage/README.txt"
+if [ "${OS:-}" = "Windows_NT" ]; then
+    cp "$root/packaging/release/README-WINDOWS.txt" "$stage/README.txt"
+else
+    cp "$root/packaging/release/README-POSIX.txt" "$stage/README.txt"
+fi
 cp "$root/LICENSE" "$stage/LICENSE"
 
 psx_product_verify_no_toolchain_payload "$stage"
@@ -175,15 +186,20 @@ if [ -n "${OS:-}" ] && [ "${OS:-}" = "Windows_NT" ]; then
             fi
             dll_lower=$(printf '%s' "$dll" | tr '[:upper:]' '[:lower:]')
             case "$dll_lower" in
-                kernel32.dll|kernelbase.dll|user32.dll|gdi32.dll|advapi32.dll|\
-                shell32.dll|ole32.dll|oleaut32.dll|oleacc.dll|ntdll.dll|ws2_32.dll|\
-                msvcrt.dll|ucrtbase.dll|vcruntime140.dll|vcruntime140_1.dll|\
-                msvcp140.dll|api-ms-win-crt-*.dll|api-ms-win-core-*.dll|\
+                kernel32.dll|kernelbase.dll|user32.dll|gdi32.dll|gdiplus.dll|advapi32.dll|\
+                shell32.dll|shcore.dll|ole32.dll|oleaut32.dll|oleacc.dll|ntdll.dll|ws2_32.dll|\
+                msvcrt.dll|ucrtbase.dll|vcruntime140.dll|vcruntime140_1.dll|vcruntime*.dll|\
+                msvcp140.dll|msvcp*.dll|api-ms-win-crt-*.dll|api-ms-win-core-*.dll|\
+                api-ms-*.dll|ext-ms-*.dll|\
                 comctl32.dll|comdlg32.dll|imm32.dll|setupapi.dll|crypt32.dll|\
-                wintrust.dll|secur32.dll|bcrypt.dll|shlwapi.dll|winmm.dll|\
-                version.dll|mswsock.dll|dwmapi.dll|hid.dll|\
-                dbghelp.dll|psapi.dll|iphlpapi.dll|dnsapi.dll|netapi32.dll|\
-                userenv.dll|wtsapi32.dll|cabinet.dll|msimg32.dll)
+                wintrust.dll|secur32.dll|bcrypt.dll|ncrypt.dll|shlwapi.dll|winmm.dll|\
+                version.dll|mswsock.dll|dwmapi.dll|uxtheme.dll|hid.dll|\
+                dbghelp.dll|psapi.dll|iphlpapi.dll|nsi.dll|dnsapi.dll|netapi32.dll|\
+                userenv.dll|wtsapi32.dll|cabinet.dll|msimg32.dll|\
+                opengl32.dll|glu32.dll|d2d1.dll|dwrite.dll|dcomp.dll|dxgi.dll|\
+                d3d*.dll|d3dcompiler_*.dll|windowscodecs.dll|propsys.dll|\
+                rpcrt4.dll|dinput8.dll|xinput*.dll|cfgmgr32.dll|powrprof.dll|\
+                avrt.dll|mf*.dll|audioses.dll)
                     ;;
                 *) missing="$missing $dll" ;;
             esac
@@ -221,6 +237,11 @@ else
     chmod 0644 "$output"
 fi
 
-(cd "$(dirname -- "$output")" && sha256sum "$(basename -- "$output")") > "$output.sha256"
+if command -v sha256sum >/dev/null 2>&1; then
+    (cd "$(dirname -- "$output")" && sha256sum "$(basename -- "$output")") >"$output.sha256"
+else
+    # macOS has shasum, not the GNU coreutils sha256sum.
+    (cd "$(dirname -- "$output")" && shasum -a 256 "$(basename -- "$output")") >"$output.sha256"
+fi
 cat "$output.sha256"
 du -h "$output"

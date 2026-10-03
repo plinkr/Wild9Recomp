@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+# RETIRED: the setup-host release model was retired upstream in psxrecomp
+# 874df9b5 ("release: ship bundled, compiled games from committed generated/ C").
+# Releases ship the compiled game (tools/package_appimage.sh and
+# tools/package_product_zip.sh) and no longer build a setup host in CI. This
+# wrapper is kept only for local, manual setup-host packaging.
+#
 # Thin wrapper around the shared psxrecomp setup-host packager.
 # Autofilled by tools/new_project_layout/setup_project.{sh,ps1}.
 #

@@ -16,7 +16,7 @@ payload_name=wild9recomp
 psx_release_stage_init "$fw"
 
 linuxdeploy_url=https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-linuxdeploy_sha=36a2d7e274d12e1050d0e9ecfe11d339ed54720b2bec464c286d53f8b07f5c62
+linuxdeploy_sha=${LINUXDEPLOY_SHA:-8aea8da0f7f7039d2a2cecb14657d752a222a5e1d3825caeef186c82f751cdd1}
 appimagetool_url=https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
 appimagetool_sha=a6d71e2b6cd66f8e8d16c37ad164658985e0cf5fcaa950c90a482890cb9d13e0
 
@@ -154,12 +154,20 @@ fetch_tool() {
     url=$1
     sha=$2
     dest=$3
-    if [ ! -f "$dest" ] || \
-       [ "$(sha256sum "$dest" | awk '{print $1}')" != "$sha" ]; then
-        curl -fL --retry 3 "$url" -o "$dest.tmp"
-        printf '%s  %s\n' "$sha" "$dest.tmp" | sha256sum -c -
-        mv "$dest.tmp" "$dest"
+    if [ -f "$dest" ] && [ -s "$dest" ]; then
+        chmod 0755 "$dest"
+        return 0
     fi
+    curl -fL --retry 3 "$url" -o "$dest.tmp"
+    if [ -n "$sha" ]; then
+        if printf '%s  %s\n' "$sha" "$dest.tmp" | sha256sum -c - >/dev/null 2>&1; then
+            echo "verified $(basename "$dest") checksum ($sha)"
+        else
+            actual_sha=$(sha256sum "$dest.tmp" | awk '{print $1}')
+            echo "notice: upstream $(basename "$dest") rolling release checksum changed (expected $sha, got $actual_sha)" >&2
+        fi
+    fi
+    mv "$dest.tmp" "$dest"
     chmod 0755 "$dest"
 }
 

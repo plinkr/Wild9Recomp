@@ -67,6 +67,11 @@ def sha256_file(path: pathlib.Path) -> str:
     return digest.hexdigest()
 
 
+def sha256_text_file(path: pathlib.Path) -> str:
+    content = path.read_bytes().replace(b"\r\n", b"\n")
+    return hashlib.sha256(content).hexdigest()
+
+
 def psxrecomp_sha(root: pathlib.Path) -> str | None:
     try:
         out = subprocess.run(
@@ -112,10 +117,12 @@ def verify(
         )
         return None
 
-    expected_toml = sha256_file(root / "game.toml")
-    if manifest.get("game_toml_sha256") != expected_toml:
+    expected_toml = sha256_text_file(root / "game.toml")
+    raw_toml = sha256_file(root / "game.toml")
+    actual_bundle_toml = manifest.get("game_toml_sha256")
+    if actual_bundle_toml != expected_toml and actual_bundle_toml != raw_toml:
         fail("game.toml has changed since the bundle was packed")
-        print(f"        bundle:   {manifest.get('game_toml_sha256')}", file=sys.stderr)
+        print(f"        bundle:   {actual_bundle_toml}", file=sys.stderr)
         print(f"        checkout: {expected_toml}", file=sys.stderr)
         return None
 

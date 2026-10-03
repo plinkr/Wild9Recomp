@@ -46,16 +46,20 @@ The recompiled C code links directly against a hardware-accurate runtime environ
 
 This release embeds OpenBIOS (open-source PS1 BIOS from PCSX-Redux), removing the requirement for a proprietary PlayStation BIOS dump. Retail SCPH dumps can still be placed in `bios/` if authentic behavior is preferred.
 
-### Option A: Self-Contained Builds (No Toolchain Required)
+### Self-Contained Builds (No Toolchain Required)
 
 These are the **product** builds: the game code is already compiled into the
 executable and the first-run setup wizard is compiled out, so there is no build
-step, no "Generate & rebuild", and nothing to install.
+step, no "Generate & rebuild", and nothing to install. Every release publishes
+all five assets:
 
 | Platform | Asset | Notes |
 | --- | --- | --- |
 | Linux | `wild9-<version>-linux-x86_64.AppImage` | `chmod +x` and run. Self-contained; needs only glibc 2.28+ and a GL 3.3 / Vulkan driver. |
-| Windows | `wild9-<version>-product-windows-x64.zip` | Unzip anywhere writable and run `Wild9_Recompiled.exe`. No Python, no MSVC, no compiler. Authenticode-signed when the release is built with a signing certificate. |
+| Linux | `wild9-<version>-linux-x64.zip` | Portable folder: unzip and run `Wild9_Recompiled`. |
+| Windows | `wild9-<version>-windows-x64.zip` | Unzip anywhere writable and run `Wild9_Recompiled.exe`. No Python, no MSVC, no compiler. Authenticode-signed when the release is built with a signing certificate. |
+| macOS (Apple silicon) | `wild9-<version>-macos-arm64.zip` | Unzip and run `Wild9_Recompiled`. |
+| macOS (Intel) | `wild9-<version>-macos-x64.zip` | Unzip and run `Wild9_Recompiled`. |
 
 The Windows zip is a portable build. psxrecomp defaults `PSX_STATIC_RUNTIME` to `ON`
 for MinGW Release builds, statically linking SDL, libgcc, libstdc++, and zlib so
@@ -64,37 +68,29 @@ verifies the PE import table with `objdump` and stages sibling DLLs left by the 
 The build deliberately avoids installing a system SDL3 DLL so that SDL3 is linked
 statically from source.
 
-1. Download the AppImage or the product ZIP.
+1. Download the asset for your platform.
 2. Run the executable, browse for your Wild 9 `.cue`, and press Play.
 
-On Linux, the AppImage keeps persistent user data outside the read-only mount in
+The AppImage keeps persistent user data outside the read-only mount in
 `$XDG_DATA_HOME/Wild9Recomp/` (`~/.local/share/Wild9Recomp`), so upgrades never
-overwrite saves. Set `WILD9RECOMP_DATA_DIR` to relocate it. The Windows ZIP is
+overwrite saves. Set `WILD9RECOMP_DATA_DIR` to relocate it. The ZIPs are
 portable -- saves, memory cards, settings, and mods live beside the executable.
 
-### Option B: Setup Host ZIP (Compiles on Target Machine)
-
-The setup ZIP is a setup host: it ships without the recompiled game code and
-builds it on first run, requiring a local C/C++ compiler. Available for Linux,
-Windows, and macOS (x86_64 and arm64).
-
 ### Prerequisites
+
 - Legally owned copy of **Wild 9 (USA)** in `.cue` format.
 - Keep the `.cue` and referenced `.bin` data tracks in the same directory.
 
-### Setup Steps (Setup ZIP)
-
-1. **Extract the archive:** Extract the setup ZIP into a writable directory (avoid protected system directories like `C:\Program Files`).
-2. **Launch the setup wizard:** Run `Wild9_Recompiled` (`Wild9_Recompiled.exe` on Windows).
-3. **Select disc image:** Browse and select your Wild 9 `.cue` file.
-4. **BIOS:** OpenBIOS is embedded and selected by default.
-5. **Generate & rebuild:** Click **Generate & rebuild** to recompile game code. The game boots automatically upon completion.
+The `.cue` is only used as the disc data source at runtime. The game code itself
+is already compiled into the executable, so nothing is generated or rebuilt on
+the player's machine.
 
 ### Platform Notes
 
-- **Product builds (AppImage / product ZIP):** No compiler or external tools required. Recommended for players.
-- **Setup ZIP on Windows:** The wizard can automatically download portable build tools.
-- **Setup ZIP on Linux & macOS:** Requires CMake, Ninja, Python 3.12 or newer, and a C/C++ compiler (`gcc` or `clang`).
+- **Linux (AppImage):** No compiler or external tools required. `chmod +x` and run.
+- **Linux (ZIP):** Portable directory: unzip and run `Wild9_Recompiled`.
+- **Windows (ZIP):** No compiler, Python or MSVC required. Unzip anywhere writable and run `Wild9_Recompiled.exe`.
+- **macOS (Apple silicon / Intel):** No compiler required. Unzip and run `Wild9_Recompiled`.
 
 ---
 
@@ -183,7 +179,7 @@ artifacts in `dist/`. Both link the precompiled game C and exclude the setup wiz
 
 ```bash
 sh tools/package_appimage.sh        # -> dist/wild9-<v>-linux-x86_64.AppImage
-sh tools/package_product_zip.sh     # -> dist/wild9-<v>-product-<host>.zip
+sh tools/package_product_zip.sh     # -> dist/wild9-<v>-<host>.zip
 ```
 
 `package_product_zip.sh` names the artifact after the build host. Under `OS=Windows_NT`,

@@ -24,6 +24,11 @@ def sha256_file(path: pathlib.Path) -> str:
     return digest.hexdigest()
 
 
+def sha256_text_file(path: pathlib.Path) -> str:
+    content = path.read_bytes().replace(b"\r\n", b"\n")
+    return hashlib.sha256(content).hexdigest()
+
+
 def sha1_file(path: pathlib.Path) -> str:
     digest = hashlib.sha1()
     with path.open("rb") as handle:
@@ -92,7 +97,7 @@ def main() -> int:
         "game": identity.get("catalog", {}).get("name", "Wild 9"),
         "serial": rom.get("serial", "SLUS-00425"),
         "psxrecomp_sha": psxrecomp_sha(root),
-        "game_toml_sha256": sha256_file(game_toml),
+        "game_toml_sha256": sha256_text_file(game_toml),
         "disc_sha1": rom["data_track"]["sha1"],
         "disc_size": rom["data_track"]["size"],
         "cue_name": rom["cue_name"],
