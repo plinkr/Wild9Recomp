@@ -1,21 +1,16 @@
-# Scaffold .gitignore for a PSXRecomp game repository (New Project Layout).
-# Aligned with docs/ci/templates/game.gitignore.
-
-# Build outputs
 /build/
 /build-*/
 /out/
 /.happypath/
 
-# Setup-host: players Generate game C locally (CI clears generated/).
 /generated/
 
-# Release packaging
 /release-stage/
 /dist/
 *.zip
+*.tar.gz
+/generated-bundle.tar.gz
 
-# Local PlayStation assets (never commit dumps / BIOS)
 /bios/
 /isos/
 /saves/
@@ -23,7 +18,6 @@
 /disc/
 .settings/
 
-# Disc / image / memcard formats
 *.bin
 *.cue
 *.iso
@@ -36,26 +30,19 @@
 *.car
 SCPH*.BIN
 
-# Local path/config stubs
 bios.cfg
 disc.cfg
 rom.cfg
 settings.toml
 
-# Local analysis scratch — GPU frame captures / parity dumps (the default
-# --out for tools/gpu_frame_*.py and gpu_parity.py) and asset rips pulled off
-# the disc. Multi-hundred-MB binaries land here and are rejected by GitHub's
-# 100 MB blob limit, and ripped disc content must never be committed at all.
 /analysis/
 
-# Ghidra / local analysis
 /ghidra/projects/
 *.gpr
 *.rep/
 *.lock
 *.lock~
 
-# Editor / cache
 .vs/
 .vscode/
 *.user
@@ -66,7 +53,6 @@ CMakeCache.txt
 CMakeFiles/
 compile_commands.json
 
-# Runtime artifacts from psx-runtime launches
 psx_crash.txt
 psx_last_run_report.json
 psx_screenshot.bmp
@@ -75,7 +61,6 @@ psx_freeze_heartbeat.json
 .psxrecomp_write_probe
 starvation_dump.jsonl
 
-# Diagnostic dumps (root-level) — keep catalog / probe trackable
 /*.json
 /*.bmp
 /*.png

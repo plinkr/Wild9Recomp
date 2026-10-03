@@ -44,24 +44,57 @@ The recompiled C code links directly against a hardware-accurate runtime environ
 
 ## Getting Started (How to Play)
 
-Getting the game running is quick and painless, **this release uses OpenBIOS** (the free, open-source PS1 BIOS from PCSX-Redux), meaning you do **not** need to hunt down or dump a proprietary Sony BIOS to start playing. (Though you can still provide an authentic retail SCPH dump if you prefer).
+This release embeds OpenBIOS (open-source PS1 BIOS from PCSX-Redux), removing the requirement for a proprietary PlayStation BIOS dump. Retail SCPH dumps can still be placed in `bios/` if authentic behavior is preferred.
+
+### Option A: Self-Contained Builds (No Toolchain Required)
+
+These are the **product** builds: the game code is already compiled into the
+executable and the first-run setup wizard is compiled out, so there is no build
+step, no "Generate & rebuild", and nothing to install.
+
+| Platform | Asset | Notes |
+| --- | --- | --- |
+| Linux | `wild9-<version>-linux-x86_64.AppImage` | `chmod +x` and run. Self-contained; needs only glibc 2.28+ and a GL 3.3 / Vulkan driver. |
+| Windows | `wild9-<version>-product-windows-x64.zip` | Unzip anywhere writable and run `Wild9_Recompiled.exe`. No Python, no MSVC, no compiler. Authenticode-signed when the release is built with a signing certificate. |
+
+The Windows zip is a portable build. psxrecomp defaults `PSX_STATIC_RUNTIME` to `ON`
+for MinGW Release builds, statically linking SDL, libgcc, libstdc++, and zlib so
+the executable imports nothing outside System32. `tools/package_product_zip.sh`
+verifies the PE import table with `objdump` and stages sibling DLLs left by the build.
+The build deliberately avoids installing a system SDL3 DLL so that SDL3 is linked
+statically from source.
+
+1. Download the AppImage or the product ZIP.
+2. Run the executable, browse for your Wild 9 `.cue`, and press Play.
+
+On Linux, the AppImage keeps persistent user data outside the read-only mount in
+`$XDG_DATA_HOME/Wild9Recomp/` (`~/.local/share/Wild9Recomp`), so upgrades never
+overwrite saves. Set `WILD9RECOMP_DATA_DIR` to relocate it. The Windows ZIP is
+portable -- saves, memory cards, settings, and mods live beside the executable.
+
+### Option B: Setup Host ZIP (Compiles on Target Machine)
+
+The setup ZIP is a setup host: it ships without the recompiled game code and
+builds it on first run, requiring a local C/C++ compiler. Available for Linux,
+Windows, and macOS (x86_64 and arm64).
 
 ### Prerequisites
-- A legally owned copy of **Wild 9 (USA)** in `.cue` format.
-- Keep your `.cue` and the referenced `.bin` / audio tracks together in the same directory.
+- Legally owned copy of **Wild 9 (USA)** in `.cue` format.
+- Keep the `.cue` and referenced `.bin` data tracks in the same directory.
 
-### Setup Steps
+### Setup Steps (Setup ZIP)
 
-1. **Extract the archive:** Extract the complete setup ZIP into a normal, writable folder (avoid directories that require administrator rights like `C:\Program Files`).
-2. **Launch the setup wizard:** Start `Wild9_Recompiled` (`Wild9_Recompiled.exe` on Windows).
-3. **Select your disc image:** In the wizard, browse and select your Wild 9 `.cue` file.
-4. **BIOS:** OpenBIOS is built-in and selected by default, so you're ready to go immediately without hunting for external BIOS files.
-5. **Generate & rebuild:** Click **Generate & rebuild** and wait for the recompilation to finish. The game will automatically boot once it's done.
+1. **Extract the archive:** Extract the setup ZIP into a writable directory (avoid protected system directories like `C:\Program Files`).
+2. **Launch the setup wizard:** Run `Wild9_Recompiled` (`Wild9_Recompiled.exe` on Windows).
+3. **Select disc image:** Browse and select your Wild 9 `.cue` file.
+4. **BIOS:** OpenBIOS is embedded and selected by default.
+5. **Generate & rebuild:** Click **Generate & rebuild** to recompile game code. The game boots automatically upon completion.
 
 ### Platform Notes
 
-- **Windows:** The setup wizard can automatically download the portable build tools for you, no manual compiler setup required.
-- **Linux & macOS:** Please install standard build tools prior to running: CMake, Ninja, Python 3.12 or newer, and a C/C++ compiler (`gcc` or `clang`).
+- **Product builds (AppImage / product ZIP):** No compiler or external tools required. Recommended for players.
+- **Setup ZIP on Windows:** The wizard can automatically download portable build tools.
+- **Setup ZIP on Linux & macOS:** Requires CMake, Ninja, Python 3.12 or newer, and a C/C++ compiler (`gcc` or `clang`).
 
 ---
 
@@ -79,32 +112,32 @@ Original cheat sequences can be entered on the controller while paused:
 ### Built-in Cheats via Launcher (Mods)
 
 > [!WARNING]
-> **Warning!** Enabling these types of mods/cheats (similar to GameShark codes) **WILL BREAK THE GAME** or cause unexpected glitches/behavior during gameplay. Use them at your own risk.
+> Enabling GameShark-style memory cheats may trigger unexpected glitches or sequence breaks.
 
-Alternatively, you don't have to enter button codes every time. When you start the game executable (`Wild9_Recompiled` or `Wild9_Recompiled.exe` on Windows), go to the **Mods** tab in the launcher before booting the game. You can enable the **Gameplay Cheats** mod and toggle individual cheat options:
+Cheats can also be toggled from the Mods tab in the launcher before starting the game:
 
 **General:**
-- **Infinite Lives:** Automatically restores your lives count to 3 when lost.
-- **Infinite Health:** Automatically restores health back to full (16) upon taking damage.
-- **Infinite Missiles on Pick-Up:** Keeps missile ammunition at 3 once you pick them up.
-- **Moon Jump:** Hold Jump (`X`) to float and ascend indefinitely.
+- **Infinite Lives:** Restores life count to 3 when lost.
+- **Infinite Health:** Restores health to 16 upon taking damage.
+- **Infinite Missiles on Pick-Up:** Locks missile ammo to 3 once collected.
+- **Moon Jump:** Hold Jump (`X`) to ascend continuously.
 
 **Drench Level Codes:**
-- **Infinite Health (Drench):** Automatically restores health back to maximum (17) in the Drench level.
-- **Moon Jump (Drench):** Hold Jump (`X`) to float and ascend indefinitely in the Drench level.
+- **Infinite Health (Drench):** Restores health to 17 during the Drench stage.
+- **Moon Jump (Drench):** Hold Jump (`X`) to ascend continuously during Drench.
 
-All cheats are disabled by default so you can choose exactly which ones to enable for your playthrough.
+All cheats are disabled by default.
 
 ---
 
 ### Preloaded Mods
 
-Enable and configure mod plugins from the Mods tab in the launcher:
+Configured from the Mods tab in the launcher:
 
 - Widescreen (`wild9.enhancement.widescreen`):
-  Expands the horizontal field of view to 16:9 during gameplay, adjusting 2D background tile column counts, camera clip bounds, and primitive culling margins.
+  Expands horizontal field of view to 16:9 during gameplay, adjusting 2D background tile column counts, camera clip bounds, and primitive culling margins.
 - Wild 9 Frame Rate (`wild9.enhancement.frame-interpolation`):
-  Enables OpenGL temporal frame blending between completed frames. Configurable to 60, 120, 144, 165 FPS, or unconstrained display refresh. Game physics, timers, and audio remain locked to 59.94 Hz.
+  Enables OpenGL temporal frame blending between completed frames. Configurable to 60, 120, 144, 165 FPS, or unconstrained display refresh. Game simulation remains locked to 59.94 Hz.
 - FMV Skip (`wild9.enhancement.fmvskip`):
   Skips intro videos on button press (defaults to `Start`, configurable to `Cross`, `Square`, `Triangle`, or `Select`).
 - Debug Overlay (`wild9.debug.overlay`):
@@ -116,23 +149,23 @@ Enable and configure mod plugins from the Mods tab in the launcher:
 
 ## RetComM Launcher
 
-If you have multiple recomp titles or prefer a unified manager, you can also launch and manage this game with **[RetComM Launcher](https://github.com/TechnicallyComputers/RetComM-Launcher)**. It handles automated updates, queued builds, and toolchain sharing without having to repeat the setup wizard manually.
+This title can also be managed through **[RetComM Launcher](https://github.com/TechnicallyComputers/RetComM-Launcher)** for unified updates, build queueing, and shared toolchains across recompilation projects.
 
 ---
 
-## Building from Source (Developers)
+## Building from Source
 
-If you want to build or tinker with the project directly from source:
+To build the project from source:
 
 ```bash
-# Clone the repository with submodules
+# Clone repository and submodules
 git clone --recursive https://github.com/plinkr/Wild9Recomp.git
 cd Wild9Recomp
 
 # Update submodules
 git submodule update --init --recursive
 
-# Generate recompiled game code from your disc image
+# Generate recompiled game code from disc image
 python3 psxrecomp/psxrecomp_cli.py generate \
   --config game.toml \
   --project-root . \
@@ -143,19 +176,61 @@ cmake -S . -B build-release -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build-release --target psx-runtime
 ```
 
+### Packaging Product Builds
+
+`tools/package_appimage.sh` and `tools/package_product_zip.sh` produce self-contained
+artifacts in `dist/`. Both link the precompiled game C and exclude the setup wizard:
+
+```bash
+sh tools/package_appimage.sh        # -> dist/wild9-<v>-linux-x86_64.AppImage
+sh tools/package_product_zip.sh     # -> dist/wild9-<v>-product-<host>.zip
+```
+
+`package_product_zip.sh` names the artifact after the build host. Under `OS=Windows_NT`,
+it performs PE import verification and Authenticode signing.
+
+Both tools require generated game sources (`python3 psxrecomp/psxrecomp_cli.py generate`),
+CMake, Ninja, a C/C++ compiler, Python 3, and ImageMagick (for AppImage packaging).
+`tools/product_build_verify.sh` verifies symbol presence (`func_80010000`, `func_8005F7C8`,
+`OpenBIOS_psx_bios_backend`) and asserts absence of local codegen host markers.
+
+### Supplying generated/ to CI
+
+Product builds require recompiled game C sources rather than raw disc images.
+`scripts/pack_generated_bundle.py` writes `generated-bundle.tar.gz` containing
+the generated C files and a manifest pinning the `psxrecomp` commit SHA, `game.toml`
+hash, and disc SHA-1:
+
+```bash
+python3 scripts/pack_generated_bundle.py
+```
+
+CI product jobs consume the bundle via repository secrets:
+
+| Secret | Value |
+| --- | --- |
+| `PSXRECOMP_GENERATED_BUNDLE_URL` | Direct URL to `generated-bundle.tar.gz` |
+| `PSXRECOMP_BUNDLE_TOKEN` | Read token for bundle repository access |
+
+`scripts/fetch_generated_bundle.py` validates archive contents against manifest
+hashes and drops authorization headers if redirected across hosts.
+
+### Overlay Architecture
+
+Wild 9 does not utilize disc overlay executables. The entire game logic resides in
+the 425,984-byte boot executable `SLUS_004.25`, with level streaming and data stored
+in `W9.CDD` and `W9.IDX`. Consequently, `packaging/release/game.toml` explicitly sets
+`overlay_cache = false` and skips runtime background compilation threads.
+
 ---
 
 ## Licenses & Credits
 
-This project is made possible thanks to incredible upstream work:
-
-- **Original Project Code:** Any code created by me in this repository is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
-- **Framework:** [PSXRecomp](https://github.com/RetroPortingToolKit/psxrecomp) is licensed under the **PolyForm Noncommercial 1.0.0 License**. See its `LICENSE` file. Copyright © 2026 Matthew Stanley; commercial licensing inquiries go to him at [https://1379.tech](https://1379.tech).
+- **Repository Code:** Licensed under the **MIT License**. See [LICENSE](LICENSE).
+- **Framework:** [PSXRecomp](https://github.com/RetroPortingToolKit/psxrecomp) is licensed under the **PolyForm Noncommercial 1.0.0 License**. Copyright (c) 2026 Matthew Stanley. Commercial licensing: [https://1379.tech](https://1379.tech).
 - **Launcher:** [recomp-ui](https://github.com/RetroPortingToolKit/recomp-ui) is licensed under the **MIT License**. Copyright (c) 2026 Matthew Stanley.
-- **BIOS:** This release uses [OpenBIOS](https://github.com/grumpycoders/pcsx-redux) from the PCSX-Redux project, licensed under the **MIT License** (Copyright (c) 2019 PCSX-Redux authors).
-
-Their licenses and dependency notices remain in the corresponding source directories.
+- **BIOS:** [OpenBIOS](https://github.com/grumpycoders/pcsx-redux) from PCSX-Redux is licensed under the **MIT License**. Copyright (c) 2019 PCSX-Redux authors.
 
 ### Disclaimer
 
-This is an unofficial fan recompilation project. The original game and its trademarks belong to their respective owners (Shiny Entertainment / Interplay). No proprietary game assets or copyrighted Sony BIOS dumps are bundled or distributed with this repository.
+This is an unofficial fan recompilation project. Wild 9 is a trademark of Shiny Entertainment and Interplay. No copyrighted game assets or proprietary Sony PlayStation BIOS dumps are bundled or distributed.

@@ -11,24 +11,22 @@ endif()
 
 project(Wild9Recomp LANGUAGES C CXX)
 
-# --- Opt-in product surfaces (OFF by default in the framework) -------------
-# Scaffold prompts / flags fill these. Without recomp-ui, PSX_RECOMP_UI is OFF.
-# Setup-host CI requires WIZARD_CMAKE_BLOCK / ENABLE_SETUP_WIZARD (FORCE_SETUP_HOST
-# alone does not open first-run / Generate & rebuild).
-# recomp-ui submodule present (PSX_RECOMP_UI defaults ON).
-# Full netplay UI — enable after adding recomp-ui + testing:
-# if(EXISTS "${PSXRECOMP_ROOT}/lib/recomp-net/CMakeLists.txt")
-#     set(PSX_NETPLAY ON CACHE BOOL "…" FORCE)
-# endif()
-set(PSX_SETUP_WIZARD ON CACHE BOOL
-    "Advertise first-run setup wizard + Generate & rebuild in recomp-ui" FORCE)
+option(WILD9_SETUP_WIZARD
+    "Compile the first-run setup wizard + local codegen host into psx-runtime" ON)
+
+if(WILD9_SETUP_WIZARD)
+    set(PSX_SETUP_WIZARD ON CACHE BOOL
+        "Advertise first-run setup wizard + Generate & rebuild in recomp-ui" FORCE)
+    set(WILD9_SETUP_WIZARD_ARGS
+        ENABLE_SETUP_WIZARD
+        CODEGEN_SETUP_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/codegen_setup.c")
+else()
+    set(PSX_SETUP_WIZARD OFF CACHE BOOL
+        "Advertise first-run setup wizard + Generate & rebuild in recomp-ui" FORCE)
+    set(WILD9_SETUP_WIZARD_ARGS)
+endif()
 include("${PSXRECOMP_ROOT}/runtime/runtime.cmake")
 
-# This project's own mod catalog. The FRAMEWORK stages it -- together with its
-# builtin psx.* packages -- into <exe-dir>/mods/bundled, and refuses to
-# configure if a catalog exists here but is not declared. Never copy it by
-# hand: five titles did, and framework 4cc04be3's rename of the staged
-# directory broke all five silently (bead beads-eio.3.101).
 set(PSX_PRELOADED_MODS "${CMAKE_CURRENT_SOURCE_DIR}/mods/preloaded")
 if(NOT IS_DIRECTORY "${PSX_PRELOADED_MODS}")
     set(PSX_PRELOADED_MODS "NONE")
@@ -40,9 +38,7 @@ file(GLOB WILD9_MOD_PLUGIN_SOURCES CONFIGURE_DEPENDS
 psxrecomp_add_game_runtime(psx-runtime
     PGXP
     PRELOADED_MODS_DIR "${PSX_PRELOADED_MODS}"
-    # ENABLE_NETPLAY_IF_PRESENT
-    # NETPLAY_LOBBY_URL "ws://netplay.retcomm.net:8765"
-    ENABLE_SETUP_WIZARD
+    ${WILD9_SETUP_WIZARD_ARGS}
     WINDOW_TITLE "Wild9 Recompiled"
     DEFAULT_GAME_CONFIG_PATH "game.toml"
     MAX_PLAYERS 1
@@ -50,13 +46,36 @@ psxrecomp_add_game_runtime(psx-runtime
     APP_ICON "${CMAKE_CURRENT_SOURCE_DIR}/assets/psxrecomp.ico"
     GEN_MARKER "generated/SLUS_004.25_dispatch.c"
     GEN_FULL_GLOB "generated/SLUS_004.25_full_*.c"
-    CODEGEN_SETUP_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/codegen_setup.c"
 )
+
+if(NOT WILD9_SETUP_WIZARD)
+    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/generated/SLUS_004.25_dispatch.c")
+        message(FATAL_ERROR
+            "WILD9_SETUP_WIZARD=OFF requires generated/ to be present, but "
+            "generated/SLUS_004.25_dispatch.c is missing.\n"
+            "Generate the game C with tools/regen.sh first, or configure with "
+            "-DWILD9_SETUP_WIZARD=ON to build the setup host instead.")
+    endif()
+    if(PSXRECOMP_FORCE_SETUP_HOST)
+        message(FATAL_ERROR
+            "WILD9_SETUP_WIZARD=OFF and PSXRECOMP_FORCE_SETUP_HOST=ON are "
+            "mutually exclusive: the first builds a product binary, the "
+            "second deliberately omits the game C and needs the wizard.")
+    endif()
+    file(GLOB _wild9_full_c "${CMAKE_CURRENT_SOURCE_DIR}/generated/SLUS_004.25_full_*.c")
+    list(LENGTH _wild9_full_c _wild9_full_n)
+    if(_wild9_full_n LESS 1)
+        message(FATAL_ERROR
+            "WILD9_SETUP_WIZARD=OFF found no generated/SLUS_004.25_full_*.c. "
+            "Run tools/regen.sh to regenerate the game C before packaging.")
+    endif()
+    message(STATUS
+        "Wild9: product build - ${_wild9_full_n} generated game C file(s) "
+        "linked, first-run setup wizard and codegen host excluded")
+endif()
 
 target_sources(psx-runtime PRIVATE ${WILD9_MOD_PLUGIN_SOURCES})
 
-# Stage runtime configs next to the exe for direct build/ launches. Only copy
-# files that exist — never fail POST_BUILD when game_options.toml is absent.
 foreach(_PSX_RUNTIME_CONFIG game.toml game_options.toml)
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${_PSX_RUNTIME_CONFIG}")
         add_custom_command(TARGET psx-runtime POST_BUILD

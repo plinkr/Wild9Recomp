@@ -1,0 +1,74 @@
+[game]
+name = "Wild 9"
+id = "SLUS-00425"
+exe = "disc/SLUS_004.25"
+disc = "disc/Wild 9 (USA).cue"
+load_address = "0x80010000"
+entry_pc = "0x8005F7C8"
+text_size = "0x00067800"
+stack_base = "0x801FFFF0"
+
+[recompiler]
+seeds = "seeds/ghidra_funcs.txt"
+out_dir = "generated"
+strict = true
+mod_function_entry_funcs = [ "0x8005706C", "0x80056E80", "0x80057024" ]
+
+[runtime]
+window_title = "Wild 9 Recompiled"
+memcard_dir = "saves"
+overlay_cache = false
+
+[video]
+renderer = "opengl"
+aspect_ratio = "4:3"
+supersampling = 3
+geometry_correction = true
+perspective_texturing = true
+pgxp_tolerance = 1.0
+
+[widescreen]
+native_wide = true
+full_2d = true
+gte_game_mode = true
+nw_backdrop = true
+clear_reveal = true
+
+[widescreen.backdrop]
+x_sites = [ "0x800134F0", "0x800134F8", "0x80013500", "0x80013508" ]
+
+[widescreen.cull]
+auto_screen_x = true
+a1_sites = [ "0x8001BECC", "0x8001C21C", "0x80027038" ]
+screen_w_imms = [ "0x100", "0x101", "0x12C", "0x12D", "0x141" ]
+screen_h_imms = [ "0xC8", "0xC9", "0xDD" ]
+slti_lower_sites = [ "0x8001A6A4", "0x8001A6D4" ]
+
+[[widescreen.cull.sxy_x_lower_sites]]
+address = "0x8001A6C0"
+expected = "0x2AC10000"
+
+[[widescreen.cull.sxy]]
+kind = "tri"
+final_address = "0x8001A800"
+final_expected = "0x01610824"
+vertex_regs = [ 8, 20, 11 ]
+fold_addresses = [ "0x8001A7F0", "0x8001A7F8" ]
+fold_expected = [ "0x01110824", "0x02810824" ]
+
+[[widescreen.cull.sxy]]
+kind = "quad"
+final_address = "0x8001A9C0"
+final_expected = "0x01210824"
+vertex_regs = [ 8, 20, 11, 9 ]
+fold_addresses = [ "0x8001A9B4", "0x8001A9B8", "0x8001A9BC" ]
+fold_expected = [ "0x01110824", "0x02810824", "0x01610824" ]
+
+[controller]
+default_mode = "digital"
+multitap_analog = true
+
+[netplay]
+require_cue = true
+required_tracks = 15
+required_disc_fp = "da6f5807b645c485f2d68e2fad4ae2a0aa10e04dc96bd7958ac0cd1d818a2d52"

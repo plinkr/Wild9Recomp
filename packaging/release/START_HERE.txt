@@ -1,0 +1,44 @@
+Wild 9 Recompiled - AppImage Quick Start
+=======================================
+
+This AppImage is self-contained. You do not need to install a compiler, a
+build toolchain, or Python. The game is already compiled into the executable
+inside this file; there is no build step and no first-run "Generate" wizard.
+
+
+1. Make it executable and run it
+--------------------------------
+
+    chmod +x wild9-<version>-linux-x86_64.AppImage
+    ./wild9-<version>-linux-x86_64.AppImage
+
+If your desktop environment handles AppImages, double-clicking is enough.
+
+
+2. Point it at your disc
+------------------------
+
+In the launcher, browse for the Wild 9 disc image you legally own:
+
+    Wild 9 (USA).cue   (the .cue must sit next to its .bin)
+
+The launcher checks the disc fingerprint and refuses anything that is not a
+matching USA revision.
+
+
+3. Play
+-------
+
+Save states, memory cards, settings, rebinds, and installed mods are saved to:
+
+    $XDG_DATA_HOME/Wild9Recomp/     (default: ~/.local/share/Wild9Recomp)
+
+Upgrading the AppImage replaces only the runtime payload; saves and settings
+remain intact. To relocate that directory, set WILD9RECOMP_DATA_DIR.
+
+
+Requirements
+------------
+
+x86-64 Linux with glibc 2.28 or newer, and a working OpenGL 3.3 / Vulkan
+driver.

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Wild 9 Recompiled
+Comment=Static recompilation of Wild 9, running from a self-contained build
+Exec=Wild9Recomp
+Icon=io.github.plinkr.Wild9Recomp
+Categories=Game;Emulator;
+Terminal=false
+StartupNotify=true

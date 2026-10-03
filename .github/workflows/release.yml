@@ -24,6 +24,14 @@ on:
         required: true
         type: boolean
         default: true
+      cache_generated:
+        description: >-
+          Cache generated/ between runs. Speeds up the AppImage and Windows
+          product builds, but stores a recompilation of the game in Actions
+          storage. Off by default; the setup-host releases never cache it.
+        required: false
+        type: boolean
+        default: false
       reuse_cached_emitters:
         description: 'Skip emitter rebuild when build-recompiler cache hits (psxrecomp SHA)'
         required: false
@@ -52,6 +60,8 @@ jobs:
       tag: ${{ steps.meta.outputs.tag }}
       publish: ${{ steps.meta.outputs.publish }}
       reuse_emitters: ${{ steps.meta.outputs.reuse_emitters }}
+      product_enabled: ${{ steps.product.outputs.enabled }}
+      cache_generated: ${{ steps.product.outputs.cache_generated }}
     steps:
       - name: Checkout (tags for auto-bump)
         if: github.event_name == 'workflow_dispatch'
@@ -99,7 +109,7 @@ jobs:
               esac
               VER="${MA}.${MI}.${PA}"
               TAG="v${VER}"
-              echo "Auto-bumped ${BUMP}: ${LATEST:-none} → ${VER}"
+              echo "Auto-bumped ${BUMP}: ${LATEST:-none} -> ${VER}"
             fi
           else
             VER="${RAW#v}"
@@ -111,7 +121,7 @@ jobs:
           fi
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]] && \
              git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null 2>&1; then
-            echo "::error::tag ${TAG} already exists — bump again or pass an explicit version"
+            echo "::error::tag ${TAG} already exists -- bump again or pass an explicit version"
             exit 1
           fi
           echo "version=${VER}" >>"$GITHUB_OUTPUT"
@@ -119,6 +129,30 @@ jobs:
           echo "publish=${PUBLISH}" >>"$GITHUB_OUTPUT"
           echo "reuse_emitters=${REUSE}" >>"$GITHUB_OUTPUT"
           echo "Using version ${VER} (tag ${TAG}), publish=${PUBLISH}, reuse_emitters=${REUSE}"
+
+      - name: Detect product-build inputs
+        id: product
+        shell: bash
+        env:
+          PSXRECOMP_GENERATED_BUNDLE_URL: ${{ secrets.PSXRECOMP_GENERATED_BUNDLE_URL }}
+          PSXRECOMP_BUNDLE_TOKEN: ${{ secrets.PSXRECOMP_BUNDLE_TOKEN }}
+          CACHE_GENERATED: ${{ inputs.cache_generated || false }}
+        run: |
+          set -euo pipefail
+          ENABLED=false
+          if [[ -n "${PSXRECOMP_GENERATED_BUNDLE_URL}" && -n "${PSXRECOMP_BUNDLE_TOKEN}" ]]; then
+            ENABLED=true
+            echo "generated/ bundle configured: product builds enabled"
+          else
+            echo "::notice::The AppImage and Windows product zip are being skipped." \
+                 "The setup-host zips publish as usual. To enable them, set BOTH" \
+                 "secrets: PSXRECOMP_GENERATED_BUNDLE_URL (the bundle's raw URL) and" \
+                 "PSXRECOMP_BUNDLE_TOKEN (a read credential for wherever it lives)." \
+                 "Both are required -- a token alone, or a URL alone, will not do." \
+                 "No disc image is ever needed in CI."
+          fi
+          echo "enabled=${ENABLED}" >>"$GITHUB_OUTPUT"
+          echo "cache_generated=${CACHE_GENERATED}" >>"$GITHUB_OUTPUT"
 
   build:
     name: ${{ matrix.artifact }}
@@ -165,10 +199,6 @@ jobs:
         shell: bash
         run: bash psxrecomp/tools/ci/record_pins.sh
 
-      # A skew between game.toml, CMakeLists GEN_MARKER and codegen_setup.c
-      # makes every player's self-build loop generate+build forever. The CLI
-      # also refuses the skew at generate time, but failing the release is
-      # cheaper than failing the player.
       - name: Lint boot-EXE name consistency
         shell: bash
         run: bash psxrecomp/tools/ci/check_boot_exe.sh .
@@ -214,9 +244,6 @@ jobs:
             || brew install cmake ninja pkg-config sdl2 \
             vulkan-headers shaderc molten-vk
 
-      # Headers + glslc are enough to compile PSX_HAVE_VULKAN (runtime still
-      # loads the ICD dynamically via SDL). Fail early if the stub path would
-      # be selected so release hosts always ship the real Vulkan backend.
       - name: Verify Vulkan build tools
         run: |
           set -euo pipefail
@@ -455,11 +482,6 @@ jobs:
           echo "lobby pin ok: ${BUILT} (${STAMP})"
 
       - name: Package setup zip
-        # Windows code signing (Smart App Control / SmartScreen): the packager
-        # signs the host exe, DLLs and emitters when these secrets exist and
-        # skips signing, with a notice, when they do not. Put the .pfx in the
-        # repo's Actions secrets base64-encoded (`base64 -w0 cert.pfx`).
-        # See psxrecomp/docs/ci/README.md, "Windows code signing".
         env:
           WINDOWS_SIGN_PFX_BASE64: ${{ secrets.WINDOWS_SIGN_PFX_BASE64 }}
           WINDOWS_SIGN_PFX_PASSWORD: ${{ secrets.WINDOWS_SIGN_PFX_PASSWORD }}
@@ -510,10 +532,350 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+  appimage:
+    name: linux-x86_64 (AppImage, no toolchain)
+    needs: prepare
+    if: needs.prepare.outputs.publish == 'true' && needs.prepare.outputs.product_enabled == 'true'
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: bash
+    env:
+      RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Pin VERSION
+        run: printf '%s\n' "${RELEASE_VERSION}" >VERSION
+
+      - name: Record framework revisions
+        run: bash psxrecomp/tools/ci/record_pins.sh
+
+      - name: Lint boot-EXE name consistency
+        run: bash psxrecomp/tools/ci/check_boot_exe.sh .
+
+      - name: Install deps
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build pkg-config \
+            libgl1-mesa-dev libxtst-dev \
+            libx11-dev libxext-dev libxrandr-dev libxcursor-dev \
+            libxfixes-dev libxi-dev libxss-dev libxkbcommon-dev \
+            libasound2-dev libpulse-dev libudev-dev zip unzip \
+            libvulkan-dev glslc imagemagick python3 curl file \
+            libgl-dev libglu1-mesa-dev
+          sudo apt-get install -y --no-install-recommends libsdl3-dev \
+            || echo "::notice::libsdl3-dev unavailable; the packager will build SDL3 from source"
+
+      - name: Verify Vulkan build tools
+        run: |
+          set -euo pipefail
+          command -v glslc
+          if [[ ! -f /usr/include/vulkan/vulkan.h ]]; then
+            echo "::error::vulkan/vulkan.h not found" >&2
+            exit 1
+          fi
+          glslc --version || true
+
+      - name: Cache SDL3 source
+        uses: actions/cache@v4
+        with:
+          path: .cache/sdl3-src
+          key: sdl3-3.4.10-src
+
+      - name: Prefetch SDL3 source
+        run: |
+          set -euo pipefail
+          OUT=".cache/sdl3-src"
+          if [[ -f psxrecomp/tools/ci/prefetch_sdl3.sh ]]; then
+            bash psxrecomp/tools/ci/prefetch_sdl3.sh --out-dir "${OUT}"
+          else
+            echo "::error::prefetch_sdl3.sh missing from the psxrecomp submodule" >&2
+            exit 1
+          fi
+          {
+            echo "PSX_SDL3_SOURCE_DIR=${GITHUB_WORKSPACE}/.cache/sdl3-src"
+          } >>"$GITHUB_ENV"
+
+      - name: Emitter cache key
+        id: emitter_cache
+        run: |
+          set -euo pipefail
+          SHA="$(git -C psxrecomp rev-parse HEAD)"
+          echo "key=appimage-emitters-${SHA}" >>"$GITHUB_OUTPUT"
+
+      - name: Cache emitters (build-recompiler)
+        id: cache_emitters
+        uses: actions/cache@v4
+        with:
+          path: build-recompiler
+          key: ${{ steps.emitter_cache.outputs.key }}
+
+      - name: Build recompiler tools (emitters)
+        if: steps.cache_emitters.outputs.cache-hit != 'true' || needs.prepare.outputs.reuse_emitters != 'true'
+        uses: ./psxrecomp/.github/actions/build-emitters
+
+      - name: Verify emitters present
+        run: |
+          set -euo pipefail
+          for f in build-recompiler/psxrecomp-game build-recompiler/psxrecomp-bios; do
+            if [[ ! -x "$f" ]]; then
+              echo "::error::missing ${f}" >&2
+              exit 1
+            fi
+          done
+
+      - name: Product inputs cache key
+        id: product_cache
+        if: needs.prepare.outputs.cache_generated == 'true'
+        run: |
+          set -euo pipefail
+          DISC_SHA="$(python3 -c "import json;print(json.load(open('catalog_identity.json'))['rom_identity']['data_track']['sha1'])")"
+          echo "key=product-generated-$(git -C psxrecomp rev-parse HEAD)-${DISC_SHA}-${{ hashFiles('game.toml', 'src/mods/**') }}" >>"$GITHUB_OUTPUT"
+
+      - name: Cache generated game C
+        id: cache_generated
+        if: needs.prepare.outputs.cache_generated == 'true'
+        uses: actions/cache@v4
+        with:
+          path: generated
+          key: ${{ steps.product_cache.outputs.key }}
+
+      - name: Prepare product inputs (verified generated/)
+        env:
+          PSXRECOMP_GENERATED_BUNDLE_URL: ${{ secrets.PSXRECOMP_GENERATED_BUNDLE_URL }}
+          PSXRECOMP_BUNDLE_TOKEN: ${{ secrets.PSXRECOMP_BUNDLE_TOKEN }}
+        run: scripts/ci_prepare_product_inputs.sh build-recompiler
+
+      - name: Build the AppImage
+        run: |
+          sh tools/package_appimage.sh
+          ls -la dist/
+
+      - name: Verify the AppImage needs no toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          APPIMAGE="$(realpath "$(ls dist/wild9-*-linux-x86_64.AppImage)")"
+          echo "checking ${APPIMAGE}"
+          rm -rf /tmp/squashfs-root /tmp/appdir-check
+          (cd /tmp && "${APPIMAGE}" --appimage-extract >/dev/null)
+          mv /tmp/squashfs-root /tmp/appdir-check
+          . tools/product_build_verify.sh
+          psx_verify_product_build /tmp/appdir-check/usr/bin/Wild9_Recompiled \
+              "$GITHUB_WORKSPACE/build-appimage-configure.log"
+          psx_product_verify_no_toolchain_payload /tmp/appdir-check/usr/share/wild9recomp
+          echo "AppImage verified: game C linked, no wizard, no toolchain"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wild9-appimage
+          path: |
+            dist/wild9-*-linux-x86_64.AppImage
+            dist/wild9-*-linux-x86_64.AppImage.sha256
+          if-no-files-found: error
+          retention-days: 30
+
+  product-windows:
+    name: windows-x64 (product zip, no toolchain)
+    needs: prepare
+    if: needs.prepare.outputs.publish == 'true' && needs.prepare.outputs.product_enabled == 'true'
+    runs-on: windows-2022
+    defaults:
+      run:
+        shell: 'msys2 {0}'
+    env:
+      RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Pin VERSION
+        shell: bash
+        run: printf '%s\n' "${RELEASE_VERSION}" >VERSION
+
+      - name: Record framework revisions
+        shell: bash
+        run: bash psxrecomp/tools/ci/record_pins.sh
+
+      - name: Lint boot-EXE name consistency
+        shell: bash
+        run: bash psxrecomp/tools/ci/check_boot_exe.sh .
+
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-binutils
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
+            mingw-w64-x86_64-pkgconf
+            mingw-w64-x86_64-vulkan-headers
+            mingw-w64-x86_64-shaderc
+            curl
+            unzip
+            zip
+
+      - name: Verify Vulkan build tools
+        run: |
+          set -euo pipefail
+          command -v glslc
+          if [[ ! -f /mingw64/include/vulkan/vulkan.h ]]; then
+            echo "::error::/mingw64/include/vulkan/vulkan.h not found" >&2
+            exit 1
+          fi
+
+      - name: Cache SDL3 source
+        uses: actions/cache@v4
+        with:
+          path: .cache/sdl3-src
+          key: sdl3-3.4.10-src
+
+      - name: Prefetch SDL3 source
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT=".cache/sdl3-src"
+          if [[ -f psxrecomp/tools/ci/prefetch_sdl3.sh ]]; then
+            bash psxrecomp/tools/ci/prefetch_sdl3.sh --out-dir "${OUT}"
+          else
+            echo "::error::prefetch_sdl3.sh missing from the psxrecomp submodule" >&2
+            exit 1
+          fi
+          echo "PSX_SDL3_SOURCE_DIR=$(cygpath -m "${GITHUB_WORKSPACE}/.cache/sdl3-src")" >>"$GITHUB_ENV"
+
+      - name: Emitter cache key
+        id: emitter_cache
+        shell: bash
+        run: |
+          set -euo pipefail
+          SHA="$(git -C psxrecomp rev-parse HEAD)"
+          echo "key=windows-product-emitters-${SHA}" >>"$GITHUB_OUTPUT"
+
+      - name: Cache emitters (build-recompiler)
+        id: cache_emitters
+        uses: actions/cache@v4
+        with:
+          path: build-recompiler
+          key: ${{ steps.emitter_cache.outputs.key }}
+
+      - name: Build recompiler tools (emitters)
+        if: steps.cache_emitters.outputs.cache-hit != 'true' || needs.prepare.outputs.reuse_emitters != 'true'
+        uses: ./psxrecomp/.github/actions/build-emitters
+
+      - name: Verify emitters present
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in build-recompiler/psxrecomp-game.exe build-recompiler/psxrecomp-bios.exe; do
+            if [[ ! -x "$f" ]]; then
+              echo "::error::missing ${f}" >&2
+              exit 1
+            fi
+          done
+
+      - name: Product inputs cache key
+        id: product_cache
+        if: needs.prepare.outputs.cache_generated == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          DISC_SHA="$(python -c "import json;print(json.load(open('catalog_identity.json'))['rom_identity']['data_track']['sha1'])")"
+          echo "key=windows-product-generated-$(git -C psxrecomp rev-parse HEAD)-${DISC_SHA}-${{ hashFiles('game.toml', 'src/mods/**') }}" >>"$GITHUB_OUTPUT"
+
+      - name: Cache generated game C
+        id: cache_generated
+        if: needs.prepare.outputs.cache_generated == 'true'
+        uses: actions/cache@v4
+        with:
+          path: generated
+          key: ${{ steps.product_cache.outputs.key }}
+
+      - name: Prepare product inputs (verified generated/)
+        shell: bash
+        env:
+          PSXRECOMP_GENERATED_BUNDLE_URL: ${{ secrets.PSXRECOMP_GENERATED_BUNDLE_URL }}
+          PSXRECOMP_BUNDLE_TOKEN: ${{ secrets.PSXRECOMP_BUNDLE_TOKEN }}
+        run: scripts/ci_prepare_product_inputs.sh build-recompiler
+
+      - name: Build the product zip
+        env:
+          WINDOWS_SIGN_PFX_BASE64: ${{ secrets.WINDOWS_SIGN_PFX_BASE64 }}
+          WINDOWS_SIGN_PFX_PASSWORD: ${{ secrets.WINDOWS_SIGN_PFX_PASSWORD }}
+        run: |
+          export RELEASE_VERSION
+          export ARTIFACT=windows-x64
+          sh tools/package_product_zip.sh
+          ls -la dist/
+
+      - name: Verify the product zip needs no toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          ZIP="$(realpath "$(ls dist/wild9-*-product-windows-x64.zip)")"
+          echo "checking ${ZIP}"
+          rm -rf /tmp/zip-check
+          mkdir -p /tmp/zip-check
+          unzip -q "${ZIP}" -d /tmp/zip-check
+          EXE=/tmp/zip-check/Wild9_Recompiled.exe
+          if [[ ! -f "${EXE}" ]]; then
+            echo "::error::product zip has no Wild9_Recompiled.exe" >&2
+            exit 1
+          fi
+          for required in assets/fonts bios/openbios.bin game.toml; do
+            if [[ ! -e "/tmp/zip-check/${required}" ]]; then
+              echo "::error::product zip is missing ${required}" >&2
+              exit 1
+            fi
+          done
+          for dir in toolchain overlay_toolchain cache; do
+            if [[ -e "/tmp/zip-check/${dir}" ]]; then
+              echo "::error::product zip ships ${dir}/" >&2
+              exit 1
+            fi
+          done
+          for marker in WILD9RECOMP_PROJECT_ROOT WILD9RECOMP_BUILD_DIR \
+                       WILD9RECOMP_FORCE_SETUP \
+                       RetroPortingToolKit/RetroPorting-Toolchains; do
+            if grep -qa "${marker}" "${EXE}"; then
+              echo "::error::product zip exe still contains ${marker} (setup wizard)" >&2
+              exit 1
+            fi
+          done
+          grep -q '^overlay_cache = false' /tmp/zip-check/game.toml \
+            || { echo "::error::shipped game.toml does not disable overlay_cache" >&2; exit 1; }
+          echo "product zip verified: no wizard, no toolchain, overlay_cache off"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wild9-product-windows
+          path: |
+            dist/wild9-*-product-windows-x64.zip
+            dist/wild9-*-product-windows-x64.zip.sha256
+          if-no-files-found: error
+          retention-days: 30
+
   release:
     name: GitHub Release
-    needs: [prepare, build]
-    if: needs.prepare.outputs.publish == 'true'
+    needs: [prepare, build, appimage, product-windows]
+    if: >-
+      always() &&
+      needs.prepare.outputs.publish == 'true' &&
+      needs.build.result == 'success' &&
+      (needs.appimage.result == 'success' || needs.appimage.result == 'skipped') &&
+      (needs.product-windows.result == 'success' || needs.product-windows.result == 'skipped')
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout (for tagging + git-cliff)
@@ -527,12 +889,27 @@ jobs:
           path: artifacts
           merge-multiple: false
 
-      - name: Flatten zips
+      - name: Collect release assets
+        id: assets
         run: |
           set -euo pipefail
           mkdir -p dist
-          find artifacts -type f -name 'wild9-*.zip' -exec cp -v {} dist/ \;
+          find artifacts -type f \( -name 'wild9-*.zip' -o -name 'wild9-*.AppImage' \) \
+            -exec cp -v {} dist/ \;
+          find artifacts -type f -name '*.sha256' -exec cp -v {} dist/ \; || true
           ls -la dist/
+          mapfile -t FILES < <(find dist -maxdepth 1 -type f | sort)
+          if [[ "${#FILES[@]}" -eq 0 ]]; then
+            echo "::error::no release artifacts were produced" >&2
+            exit 1
+          fi
+          echo "Found ${#FILES[@]} release asset(s):"
+          printf '  %s\n' "${FILES[@]}"
+          {
+            echo 'files<<EOF'
+            printf '%s\n' "${FILES[@]}"
+            echo EOF
+          } >>"$GITHUB_OUTPUT"
 
       - name: Ensure release tag exists
         if: github.event_name == 'workflow_dispatch'
@@ -586,7 +963,6 @@ jobs:
           tag_name: ${{ needs.prepare.outputs.tag }}
           name: "Wild9 Recompiled ${{ needs.prepare.outputs.tag }}"
           body_path: release-notes.md
-          files: |
-            dist/wild9-*.zip
+          files: ${{ steps.assets.outputs.files }}
           fail_on_unmatched_files: true
           target_commitish: ${{ github.sha }}
