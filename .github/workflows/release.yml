@@ -162,7 +162,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-24.04
+          - os: ubuntu-22.04
             artifact: linux-x64
             shell: bash
           - os: windows-2022
@@ -233,7 +233,43 @@ jobs:
             libx11-dev libxext-dev libxrandr-dev libxcursor-dev \
             libxfixes-dev libxi-dev libxss-dev libxkbcommon-dev \
             libasound2-dev libpulse-dev libudev-dev zip unzip \
-            libvulkan-dev glslc
+            libvulkan-dev curl xz-utils
+
+      - name: Cache Vulkan SDK (Linux glslc)
+        if: runner.os == 'Linux'
+        uses: actions/cache@v4
+        with:
+          path: .cache/vulkan-sdk
+          key: vulkan-sdk-linux-x86_64-1.4.363.0
+
+      - name: Install Vulkan SDK (Linux glslc)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDK_VERSION=1.4.363.0
+          SDK_CACHE_ROOT="${GITHUB_WORKSPACE}/.cache/vulkan-sdk"
+          SDK_ROOT="${SDK_CACHE_ROOT}/${SDK_VERSION}"
+          SDK_ARCHIVE="${SDK_CACHE_ROOT}/vulkan_sdk-${SDK_VERSION}.tar.xz"
+          SDK_URL="https://sdk.lunarg.com/sdk/download/${SDK_VERSION}/linux/vulkan_sdk.tar.xz"
+          SDK_SHA256="197962f5cbf80baf2775a03336a01cee7c8745686c65aaa70d3f751ade4d7e43"
+
+          if [[ ! -x "${SDK_ROOT}/x86_64/bin/glslc" ]]; then
+            mkdir -p "${SDK_CACHE_ROOT}"
+            if [[ ! -f "${SDK_ARCHIVE}" ]]; then
+              echo "Downloading Vulkan SDK ${SDK_VERSION}..."
+              curl -fsSL --retry 5 --retry-all-errors --retry-delay 2 \
+                -o "${SDK_ARCHIVE}" "${SDK_URL}"
+            fi
+            echo "${SDK_SHA256}  ${SDK_ARCHIVE}" | sha256sum -c -
+            rm -rf "${SDK_ROOT}"
+            tar -xJf "${SDK_ARCHIVE}" -C "${SDK_CACHE_ROOT}"
+          fi
+
+          test -x "${SDK_ROOT}/x86_64/bin/glslc"
+          echo "VULKAN_SDK=${SDK_ROOT}/x86_64" >>"${GITHUB_ENV}"
+          echo "PATH=${SDK_ROOT}/x86_64/bin:${PATH}" >>"${GITHUB_ENV}"
+          echo "Vulkan SDK ${SDK_VERSION}: ${SDK_ROOT}/x86_64"
 
       - name: Install deps (macOS)
         if: runner.os == 'macOS'
@@ -514,7 +550,7 @@ jobs:
     name: linux-x86_64 (AppImage, no toolchain)
     needs: prepare
     if: needs.prepare.outputs.product_enabled == 'true'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     defaults:
       run:
         shell: bash
@@ -545,10 +581,44 @@ jobs:
             libx11-dev libxext-dev libxrandr-dev libxcursor-dev \
             libxfixes-dev libxi-dev libxss-dev libxkbcommon-dev \
             libasound2-dev libpulse-dev libudev-dev zip unzip \
-            libvulkan-dev glslc imagemagick python3 curl file \
+            libvulkan-dev imagemagick python3 curl file xz-utils \
             libgl-dev libglu1-mesa-dev
           sudo apt-get install -y --no-install-recommends libsdl3-dev \
             || echo "::notice::libsdl3-dev unavailable; the packager will build SDL3 from source"
+
+      - name: Cache Vulkan SDK
+        uses: actions/cache@v4
+        with:
+          path: .cache/vulkan-sdk
+          key: vulkan-sdk-linux-x86_64-1.4.363.0
+
+      - name: Install Vulkan SDK (glslc)
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDK_VERSION=1.4.363.0
+          SDK_CACHE_ROOT="${GITHUB_WORKSPACE}/.cache/vulkan-sdk"
+          SDK_ROOT="${SDK_CACHE_ROOT}/${SDK_VERSION}"
+          SDK_ARCHIVE="${SDK_CACHE_ROOT}/vulkan_sdk-${SDK_VERSION}.tar.xz"
+          SDK_URL="https://sdk.lunarg.com/sdk/download/${SDK_VERSION}/linux/vulkan_sdk.tar.xz"
+          SDK_SHA256="197962f5cbf80baf2775a03336a01cee7c8745686c65aaa70d3f751ade4d7e43"
+
+          if [[ ! -x "${SDK_ROOT}/x86_64/bin/glslc" ]]; then
+            mkdir -p "${SDK_CACHE_ROOT}"
+            if [[ ! -f "${SDK_ARCHIVE}" ]]; then
+              echo "Downloading Vulkan SDK ${SDK_VERSION}..."
+              curl -fsSL --retry 5 --retry-all-errors --retry-delay 2 \
+                -o "${SDK_ARCHIVE}" "${SDK_URL}"
+            fi
+            echo "${SDK_SHA256}  ${SDK_ARCHIVE}" | sha256sum -c -
+            rm -rf "${SDK_ROOT}"
+            tar -xJf "${SDK_ARCHIVE}" -C "${SDK_CACHE_ROOT}"
+          fi
+
+          test -x "${SDK_ROOT}/x86_64/bin/glslc"
+          echo "VULKAN_SDK=${SDK_ROOT}/x86_64" >>"${GITHUB_ENV}"
+          echo "PATH=${SDK_ROOT}/x86_64/bin:${PATH}" >>"${GITHUB_ENV}"
+          echo "Vulkan SDK ${SDK_VERSION}: ${SDK_ROOT}/x86_64"
 
       - name: Verify Vulkan build tools
         run: |
@@ -645,7 +715,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          APPIMAGE="$(realpath "$(ls dist/wild9-*-linux-x86_64.AppImage)")"
+          APPIMAGE="$(realpath "$(ls dist/wild9-*-x86_64.AppImage)")"
           echo "checking ${APPIMAGE}"
           rm -rf /tmp/squashfs-root /tmp/appdir-check
           (cd /tmp && "${APPIMAGE}" --appimage-extract >/dev/null)
@@ -661,8 +731,8 @@ jobs:
         with:
           name: wild9-appimage
           path: |
-            dist/wild9-*-linux-x86_64.AppImage
-            dist/wild9-*-linux-x86_64.AppImage.sha256
+            dist/wild9-*-x86_64.AppImage
+            dist/wild9-*-x86_64.AppImage.sha256
           if-no-files-found: error
           retention-days: 30
 

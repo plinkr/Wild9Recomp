@@ -55,7 +55,7 @@ all five assets:
 
 | Platform | Asset | Notes |
 | --- | --- | --- |
-| Linux | `wild9-<version>-linux-x86_64.AppImage` | `chmod +x` and run. Self-contained; needs only glibc 2.28+ and a GL 3.3 / Vulkan driver. |
+| Linux | `wild9-<version>-x86_64.AppImage` | `chmod +x` and run. Self-contained; needs only glibc 2.28+ and a GL 3.3 / Vulkan driver. |
 | Linux | `wild9-<version>-linux-x64.zip` | Portable folder: unzip and run `Wild9_Recompiled`. |
 | Windows | `wild9-<version>-windows-x64.zip` | Unzip anywhere writable and run `Wild9_Recompiled.exe`. No Python, no MSVC, no compiler. Authenticode-signed when the release is built with a signing certificate. |
 | macOS (Apple silicon) | `wild9-<version>-macos-arm64.zip` | Unzip and run `Wild9_Recompiled`. |
@@ -145,7 +145,7 @@ Configured from the Mods tab in the launcher:
 
 ## RetComM Launcher
 
-This title can also be managed through **[RetComM Launcher](https://github.com/TechnicallyComputers/RetComM-Launcher)** for unified updates, build queueing, and shared toolchains across recompilation projects.
+This title can also be managed through **[Retro Launcher](https://github.com/RetroPortingToolKit/Retro-Launcher)** for unified updates, build queueing, and shared toolchains across recompilation projects.
 
 ---
 
@@ -178,7 +178,7 @@ cmake --build build-release --target psx-runtime
 artifacts in `dist/`. Both link the precompiled game C and exclude the setup wizard:
 
 ```bash
-sh tools/package_appimage.sh        # -> dist/wild9-<v>-linux-x86_64.AppImage
+sh tools/package_appimage.sh        # -> dist/wild9-<v>-x86_64.AppImage
 sh tools/package_product_zip.sh     # -> dist/wild9-<v>-<host>.zip
 ```
 

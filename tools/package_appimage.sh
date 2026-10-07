@@ -7,7 +7,7 @@ appdir=$build_dir/AppDir
 version=${RELEASE_VERSION:-$(tr -d " \t\r\n" < "$root/VERSION")}
 [ -n "$version" ] || { echo "VERSION is empty" >&2; exit 1; }
 version=${version#v}
-output=${OUTPUT:-"$root/dist/wild9-$version-linux-x86_64.AppImage"}
+output=${OUTPUT:-"$root/dist/wild9-$version-x86_64.AppImage"}
 tools_dir=$build_dir/appimage-tools
 fw=$root/psxrecomp
 payload_name=wild9recomp
