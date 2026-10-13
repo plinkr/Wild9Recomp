@@ -1,0 +1,51 @@
+format_version = 6
+id = "wild9.localization.language"
+version = "1.0.0"
+name = "Wild 9 Language"
+author = "Wild9Recomp"
+description = "Selects one of Wild 9's built-in Multi-5 languages."
+resolver = "declarative"
+save_compatibility = "shared"
+
+[[target]]
+game_id = "SLUS-00425"
+
+[[feature]]
+id = "language"
+name = "Game Language"
+description = "Select the language used by Wild 9's built-in text data."
+group = "Localization"
+default_enabled = true
+
+[[option]]
+feature = "language"
+id = "language"
+label = "Language"
+description = "English (UK) uses the same English data included in the USA executable."
+group = "Localization"
+type = "choice"
+default = "en"
+
+[[option.choice]]
+value = "en"
+label = "English (US/UK)"
+
+[[option.choice]]
+value = "fr"
+label = "French"
+
+[[option.choice]]
+value = "de"
+label = "German"
+
+[[option.choice]]
+value = "it"
+label = "Italian"
+
+[[option.choice]]
+value = "es"
+label = "Spanish"
+
+[[plugin]]
+feature = "language"
+id = "wild9.language"

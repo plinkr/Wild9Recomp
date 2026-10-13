@@ -38,7 +38,9 @@ The recompiled C code links directly against a hardware-accurate runtime environ
 - Widescreen rendering: Native widescreen expansion with automated 2D backdrop stretching and SXY screen culling adjustments.
 - Frame rate presentation mod: Optional temporal frame blending mod supporting 60, 120, 144, 165 FPS, and display refresh targets on OpenGL while maintaining original 59.94 Hz simulation cadence.
 - Video skip mod: Configurable controller button shortcut to skip introductory FMV sequences and logos.
+- Language selection mod: Configurable launcher option to select among built-in Multi-5 languages (English, French, German, Italian, Spanish).
 - Debug overlay: Mod plugin exposing the native engine diagnostic overlay for memory, GPU, and rendering performance metrics.
+- Enhanced environment brightness: Optional OpenGL post-process gamma adjustment that lifts shadows and mid-tones without modifying guest rendering state, textures, or recompiled game code.
 
 ---
 
@@ -136,8 +138,12 @@ Configured from the Mods tab in the launcher:
   Enables OpenGL temporal frame blending between completed frames. Configurable to 60, 120, 144, 165 FPS, or unconstrained display refresh. Game simulation remains locked to 59.94 Hz.
 - FMV Skip (`wild9.enhancement.fmvskip`):
   Skips intro videos on button press (defaults to `Start`, configurable to `Cross`, `Square`, `Triangle`, or `Select`).
+- Wild 9 Language (`wild9.localization.language`):
+  Selects one of Wild 9's built-in Multi-5 languages (English, French, German, Italian, Spanish). The runtime plugin (`wild9.language`) updates the active language variable at address `0x8007B3B4` during game execution.
 - Debug Overlay (`wild9.debug.overlay`):
   Activates the game's internal diagnostic overlay displaying CPU, GPU, memory, and draw call counters.
+- Enhanced Environment Brightness (`wild9.enhancement.brightness`):
+  Applies a configurable post-process display gamma adjustment during the OpenGL presentation stage. The default value of `1.30` lifts shadows and mid-tones while leaving guest rendering state, textures, and recompiled game code unchanged. `1.00` preserves the vanilla presentation.
 - Gameplay Cheats (`wild9.gameplay.cheats`):
   Individual toggles for infinite lives, infinite health, infinite missiles, and moon jump.
 
