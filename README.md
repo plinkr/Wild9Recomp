@@ -41,6 +41,7 @@ The recompiled C code links directly against a hardware-accurate runtime environ
 - Language selection mod: Configurable launcher option to select among built-in Multi-5 languages (English, French, German, Italian, Spanish).
 - Debug overlay: Mod plugin exposing the native engine diagnostic overlay for memory, GPU, and rendering performance metrics.
 - Enhanced environment brightness: Optional OpenGL post-process gamma adjustment that lifts shadows and mid-tones without modifying guest rendering state, textures, or recompiled game code.
+- Rig overhead hover mod: Gameplay enhancement allowing players to lock held objects or enemies overhead by holding both trigger buttons (R2 + L2 / RT + LT), eliminating awkward carry physics during platforming sections.
 
 ---
 
@@ -144,6 +145,8 @@ Configured from the Mods tab in the launcher:
   Activates the game's internal diagnostic overlay displaying CPU, GPU, memory, and draw call counters.
 - Enhanced Environment Brightness (`wild9.enhancement.brightness`):
   Applies a configurable post-process display gamma adjustment during the OpenGL presentation stage. The default value of `1.30` lifts shadows and mid-tones while leaving guest rendering state, textures, and recompiled game code unchanged. `1.00` preserves the vanilla presentation.
+- Rig Overhead Hover (`wild9.gameplay.riglock`):
+  Anchors held objects and enemies directly above the player while both triggers are held (R2 + L2 on PlayStation controllers, or RT + LT on standard gamepads). This addresses one of the most frustrating aspects of vanilla gameplay: navigating platforming sections while carrying objects, such as transporting Nitro through the Gulag level. While holding both triggers, the object remains fixed overhead as the player runs and jumps. To slam an enemy once overhead, release the triggers to restore stock Rig physics and swing controls. The default overhead distance (2400 units, configurable from 2000 to 5000) is calibrated to match vanilla carry geometry and equilibrium values derived from original game code.
 - Gameplay Cheats (`wild9.gameplay.cheats`):
   Individual toggles for infinite lives, infinite health, infinite missiles, and moon jump.
 
