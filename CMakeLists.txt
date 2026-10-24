@@ -39,6 +39,7 @@ psxrecomp_add_game_runtime(psx-runtime
     PGXP
     PRELOADED_MODS_DIR "${PSX_PRELOADED_MODS}"
     WINDOW_TITLE "Wild 9 Recompiled"
+    EXE_NAME "Wild9_Recompiled"
     DEFAULT_GAME_CONFIG_PATH "game.toml"
     MAX_PLAYERS 1
     LAUNCHER_BOXART "${CMAKE_CURRENT_SOURCE_DIR}/launcher_assets/img/boxart.tga"
