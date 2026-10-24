@@ -38,12 +38,12 @@ file(GLOB WILD9_MOD_PLUGIN_SOURCES CONFIGURE_DEPENDS
 psxrecomp_add_game_runtime(psx-runtime
     PGXP
     PRELOADED_MODS_DIR "${PSX_PRELOADED_MODS}"
-    ${WILD9_SETUP_WIZARD_ARGS}
-    WINDOW_TITLE "Wild9 Recompiled"
+    WINDOW_TITLE "Wild 9 Recompiled"
     DEFAULT_GAME_CONFIG_PATH "game.toml"
     MAX_PLAYERS 1
     LAUNCHER_BOXART "${CMAKE_CURRENT_SOURCE_DIR}/launcher_assets/img/boxart.tga"
     APP_ICON "${CMAKE_CURRENT_SOURCE_DIR}/assets/psxrecomp.ico"
+    ${WILD9_SETUP_WIZARD_ARGS}
     GEN_MARKER "generated/SLUS_004.25_dispatch.c"
     GEN_FULL_GLOB "generated/SLUS_004.25_full_*.c"
 )
