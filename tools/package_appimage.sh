@@ -89,6 +89,7 @@ fi
 cmake --build "$build_dir" --target psx-runtime -j "${BUILD_JOBS:-$(getconf _NPROCESSORS_ONLN)}"
 
 . "$root/tools/product_build_verify.sh"
+psx_product_verify_release_config "$root"
 exe=$build_dir/Wild9_Recompiled
 psx_verify_product_build "$exe" "$build_dir-configure.log"
 

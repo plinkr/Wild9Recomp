@@ -65,7 +65,7 @@ jobs:
     steps:
       - name: Checkout (tags for auto-bump)
         if: github.event_name == 'workflow_dispatch'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -184,7 +184,7 @@ jobs:
       ARTIFACT: ${{ matrix.artifact }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
           fetch-depth: 1
@@ -220,6 +220,7 @@ jobs:
             mingw-w64-x86_64-vulkan-headers
             mingw-w64-x86_64-shaderc
             curl
+            diffutils
             unzip
             zip
 
@@ -237,7 +238,7 @@ jobs:
 
       - name: Cache Vulkan SDK (Linux glslc)
         if: runner.os == 'Linux'
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .cache/vulkan-sdk
           key: vulkan-sdk-linux-x86_64-1.4.363.0
@@ -332,7 +333,7 @@ jobs:
 
       - name: Cache SDL3 source
         if: runner.os != 'macOS'
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .cache/sdl3-src
           key: sdl3-3.4.10-src
@@ -401,7 +402,7 @@ jobs:
 
       - name: Cache emitters (build-recompiler)
         id: cache_emitters
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: build-recompiler
           key: ${{ steps.emitter_cache.outputs.key }}
@@ -424,7 +425,7 @@ jobs:
 
       - name: Setup ccache (Linux/macOS)
         if: runner.os != 'Windows'
-        uses: hendrikmuhs/ccache-action@v1.2
+        uses: hendrikmuhs/ccache-action@v1.2.24
         with:
           key: product-${{ matrix.artifact }}
           max-size: 800M
@@ -442,7 +443,7 @@ jobs:
       - name: Cache generated game C
         id: cache_generated
         if: needs.prepare.outputs.cache_generated == 'true'
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: generated
           key: ${{ steps.product_cache.outputs.key }}
@@ -537,7 +538,7 @@ jobs:
           echo "mod catalog verified in ${ZIP} (no developer-channel packages)"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wild9-${{ matrix.artifact }}
           path: |
@@ -558,7 +559,7 @@ jobs:
       RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -587,7 +588,7 @@ jobs:
             || echo "::notice::libsdl3-dev unavailable; the packager will build SDL3 from source"
 
       - name: Cache Vulkan SDK
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .cache/vulkan-sdk
           key: vulkan-sdk-linux-x86_64-1.4.363.0
@@ -631,7 +632,7 @@ jobs:
           glslc --version || true
 
       - name: Cache SDL3 source
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .cache/sdl3-src
           key: sdl3-3.4.10-src
@@ -659,7 +660,7 @@ jobs:
 
       - name: Cache emitters (build-recompiler)
         id: cache_emitters
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: build-recompiler
           key: ${{ steps.emitter_cache.outputs.key }}
@@ -689,7 +690,7 @@ jobs:
       - name: Cache generated game C
         id: cache_generated
         if: needs.prepare.outputs.cache_generated == 'true'
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: generated
           key: ${{ steps.product_cache.outputs.key }}
@@ -701,7 +702,7 @@ jobs:
         run: scripts/ci_prepare_product_inputs.sh build-recompiler
 
       - name: Cache AppImage packaging tools
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: build-appimage/appimage-tools
           key: appimage-packaging-tools-v1
@@ -727,7 +728,7 @@ jobs:
           echo "AppImage verified: game C linked, no wizard, no toolchain"
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wild9-appimage
           path: |
@@ -748,12 +749,12 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout (for tagging + git-cliff)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
           merge-multiple: false
@@ -827,7 +828,7 @@ jobs:
           cat release-notes.md
 
       - name: Publish release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.prepare.outputs.tag }}
           name: "Wild9 Recompiled ${{ needs.prepare.outputs.tag }}"

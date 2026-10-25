@@ -105,6 +105,7 @@ cmake --build "$build_dir" --target psx-runtime \
     -j "${BUILD_JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)}"
 
 . "$root/tools/product_build_verify.sh"
+psx_product_verify_release_config "$root"
 
 # MinGW names the target Wild9_Recompiled.exe; everything else drops the suffix.
 # Check for .exe explicitly first so native tools receive the exact file path.

@@ -57,6 +57,23 @@ psx_product_verify_no_toolchain_payload() {
     done
 }
 
+# packaging/release/game.toml must be the root game.toml plus only
+# `overlay_cache = false`. A stale copy ships a schema the runtime rejects
+psx_product_verify_release_config() {
+    _pr_root=$1
+    _pr_release="$_pr_root/packaging/release/game.toml"
+    if ! grep -qx 'overlay_cache = false' "$_pr_release"; then
+        echo "  FAIL: ${_pr_release} does not set overlay_cache = false." >&2
+        return 1
+    fi
+    if ! grep -vx 'overlay_cache = false' "$_pr_release" | diff -u "$_pr_root/game.toml" - >&2; then
+        echo "  FAIL: ${_pr_release} has drifted from game.toml (diff above)." >&2
+        echo "        It must equal game.toml plus 'overlay_cache = false' under [runtime]." >&2
+        return 1
+    fi
+    echo "  release game.toml in sync with game.toml"
+}
+
 psx_verify_product_build() {
     _pv_exe=$1
     _pv_log=$2
