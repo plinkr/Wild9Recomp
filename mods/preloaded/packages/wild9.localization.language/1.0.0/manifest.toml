@@ -3,7 +3,7 @@ id = "wild9.localization.language"
 version = "1.0.0"
 name = "Wild 9 Language"
 author = "Wild9Recomp"
-description = "Selects one of Wild 9's built-in Multi-5 languages."
+description = "Selects one of Wild 9's built-in Multi-5 languages, or Japanese from Wildroid 9."
 resolver = "declarative"
 save_compatibility = "shared"
 
@@ -21,7 +21,7 @@ default_enabled = true
 feature = "language"
 id = "language"
 label = "Language"
-description = "English (UK) uses the same English data included in the USA executable."
+description = "English (UK) uses the same English data included in the USA executable. Japanese uses the Wildroid 9 script and font and needs the OpenGL renderer."
 group = "Localization"
 type = "choice"
 default = "en"
@@ -46,6 +46,14 @@ label = "Italian"
 value = "es"
 label = "Spanish"
 
+[[option.choice]]
+value = "ja"
+label = "Japanese"
+
 [[plugin]]
 feature = "language"
 id = "wild9.language"
+
+[[plugin]]
+feature = "language"
+id = "wild9.japanese_text"

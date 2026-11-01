@@ -112,7 +112,7 @@ def verify(
             "        Regenerate and re-pack:\n"
             "          python3 psxrecomp/psxrecomp_cli.py generate --config game.toml \\\n"
             "              --project-root . --disc '<your Wild 9 .cue>'\n"
-            "          scripts/pack_generated_bundle.py",
+            "          scripts/pack_generated_bundle.py --jp-disc '<your Wildroid 9 .cue>'",
             file=sys.stderr,
         )
         return None

@@ -14,6 +14,8 @@ import tarfile
 
 SCHEMA = 1
 DEFAULT_OUT = "generated-bundle.tar.gz"
+JAPANESE_TEXT = "wild9_japanese_text.c"
+JP_DISC_SHA256 = "eea7bbe08ac2f650b3e336cd536c00ee78aaa1a07f5b900743aade4853549e09"
 
 
 def sha256_file(path: pathlib.Path) -> str:
@@ -74,6 +76,11 @@ def main() -> int:
     parser.add_argument(
         "--output", default=DEFAULT_OUT, help=f"archive to write (default: {DEFAULT_OUT})"
     )
+    parser.add_argument(
+        "--jp-disc",
+        help="Wildroid 9 (Japan) .cue: (re)extract the Japanese text into "
+        f"generated/{JAPANESE_TEXT} before packing",
+    )
     args = parser.parse_args()
 
     root = pathlib.Path(__file__).resolve().parent.parent
@@ -88,6 +95,26 @@ def main() -> int:
         )
     if not game_toml.is_file():
         raise SystemExit(f"{game_toml} is missing")
+
+    japanese = generated / JAPANESE_TEXT
+    if args.jp_disc:
+        subprocess.run(
+            [
+                sys.executable,
+                str(root / "tools" / "localization" / "extract_japanese_text.py"),
+                "--disc",
+                args.jp_disc,
+                "--output",
+                str(japanese),
+            ],
+            check=True,
+        )
+    if not japanese.is_file():
+        print(
+            f"warning: generated/{JAPANESE_TEXT} is missing; builds from this bundle "
+            "show English when Japanese is selected. Pass --jp-disc '<Wildroid 9 .cue>'.",
+            file=sys.stderr,
+        )
 
     identity = load_identity(root)
     rom = identity["rom_identity"]
@@ -104,6 +131,8 @@ def main() -> int:
         "created_utc": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "files": collect(generated),
     }
+    if japanese.is_file():
+        manifest["japanese_text_source_sha256"] = JP_DISC_SHA256
 
     output = pathlib.Path(args.output)
     if not output.is_absolute():
@@ -127,6 +156,7 @@ def main() -> int:
     print(f"  psxrecomp_sha  {manifest['psxrecomp_sha']}")
     print(f"  game_toml      {manifest['game_toml_sha256'][:16]}...")
     print(f"  disc           {manifest['cue_name']} sha1={manifest['disc_sha1'][:16]}...")
+    print(f"  japanese text  {'yes' if japanese.is_file() else 'no'}")
     print(f"  {len(manifest['files'])} file(s), {output.stat().st_size / 1e6:.1f} MB")
     print()
     return 0

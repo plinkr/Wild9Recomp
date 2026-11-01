@@ -30,6 +30,18 @@
 #define W9_TILE_COUNT_B_ADDR 0x800149ECu
 #define W9_TILE_COUNT_B_WORD 0x24730001u
 
+#define W9_TEXT_FLUSH_FUNC 0x80025CE8u
+#define W9_OT_ADDR 0x800779A4u
+#define W9_OT_HEAD_OFFSET 0xFFCu
+#define W9_SCREEN_H_ADDR 0x8008125Au
+
+/* Mirrors the runtime's nw_backdrop shape test (gpu.c). */
+#define W9_BACKDROP_EDGE 24
+#define W9_BACKDROP_MIN_H 64
+/* A real full-frame backdrop reaches the screen edges; a panel is inset. */
+#define W9_PANEL_INSET 4
+#define W9_OT_WALK_MAX 32768u
+
 static uint32_t s_clip_base;
 static uint32_t s_clip_applied;
 static uint32_t s_tile_count_b;
@@ -177,6 +189,118 @@ static int w9_tiled_layer_prehook(struct CPUState *cpu) {
   return 0;
 }
 
+static int w9_quad_vertex_words(uint32_t op, uint32_t idx[4]) {
+  uint32_t stride, count;
+
+  if (op >= 0x28u && op <= 0x2Bu) {
+    stride = 1u;
+    count = 5u;
+  } else if (op >= 0x2Cu && op <= 0x2Fu) {
+    stride = 2u;
+    count = 9u;
+  } else if (op >= 0x38u && op <= 0x3Bu) {
+    stride = 2u;
+    count = 8u;
+  } else if (op >= 0x3Cu && op <= 0x3Fu) {
+    stride = 3u;
+    count = 12u;
+  } else {
+    return 0;
+  }
+
+  for (uint32_t i = 0; i < 4u; ++i)
+    idx[i] = 1u + i * stride;
+  return (int)count;
+}
+
+/* Japanese dialogue boxes are wide enough for the runtime's nw_backdrop test
+ * to mistake them for a full-frame backdrop and stretch them to 16:9. */
+static int w9_is_inset_panel(uint32_t cmd, uint32_t words, int32_t screen_w) {
+  uint32_t idx[4];
+  int32_t vx[4], vy[4];
+  int need = w9_quad_vertex_words(psx_mod_read_word(cmd) >> 24, idx);
+
+  if (!need || (uint32_t)need > words)
+    return 0;
+
+  int32_t minx = 0x7FFF, maxx = -0x8000, miny = 0x7FFF, maxy = -0x8000;
+
+  for (int i = 0; i < 4; ++i) {
+    uint32_t xy = psx_mod_read_word(cmd + idx[i] * 4u);
+
+    vx[i] = (int16_t)(xy & 0xFFFFu);
+    vy[i] = (int16_t)(xy >> 16);
+    minx = vx[i] < minx ? vx[i] : minx;
+    maxx = vx[i] > maxx ? vx[i] : maxx;
+    miny = vy[i] < miny ? vy[i] : miny;
+    maxy = vy[i] > maxy ? vy[i] : maxy;
+  }
+
+  if (minx > W9_BACKDROP_EDGE || maxx < screen_w - W9_BACKDROP_EDGE ||
+      maxy - miny < W9_BACKDROP_MIN_H)
+    return 0;
+  if (minx < W9_PANEL_INSET || maxx > screen_w - W9_PANEL_INSET)
+    return 0;
+
+  for (int i = 0; i < 4; ++i) {
+    int xe =
+        vx[i] - minx <= W9_BACKDROP_EDGE || maxx - vx[i] <= W9_BACKDROP_EDGE;
+    int ye =
+        vy[i] - miny <= W9_BACKDROP_EDGE || maxy - vy[i] <= W9_BACKDROP_EDGE;
+
+    if (!xe || !ye)
+      return 0;
+  }
+  return 1;
+}
+
+/* Runs at the text flush because the ordering table is complete by then.
+ * A centred HUD anchor exempts the panel from the backdrop stretch. */
+static void wild9_widescreen_panels(CPUState *cpu, uint32_t address) {
+  (void)cpu;
+  (void)address;
+
+  if (psx_mod_widescreen_view_x_margin() <= 0)
+    return;
+
+  int32_t screen_w = (int16_t)psx_mod_read_half(W9_SCREEN_W_ADDR);
+  int32_t screen_h = (int16_t)psx_mod_read_half(W9_SCREEN_H_ADDR);
+  uint32_t ot = psx_mod_read_word(W9_OT_ADDR);
+
+  if (screen_w <= 2 * W9_BACKDROP_EDGE || screen_h < W9_BACKDROP_MIN_H || !ot)
+    return;
+
+  uint32_t packet = ot + W9_OT_HEAD_OFFSET;
+  uint32_t tagged = 0;
+
+  for (uint32_t n = 0; n < W9_OT_WALK_MAX; ++n) {
+    uint32_t tag = psx_mod_read_word(packet);
+    uint32_t words = tag >> 24;
+
+    if (words) {
+      uint32_t cmd = packet + 4u;
+
+      /* The runtime anchors compound E1 packets by their E1 word. */
+      if ((psx_mod_read_word(cmd) >> 24) == 0xE1u && words > 1u) {
+        if (w9_is_inset_panel(cmd + 4u, words - 1u, screen_w)) {
+          psx_mod_anchor_hud_primitive(packet + 4u, 0);
+          tagged++;
+        }
+      } else if (w9_is_inset_panel(cmd, words, screen_w)) {
+        psx_mod_anchor_hud_primitive(packet, 0);
+        tagged++;
+      }
+    }
+
+    if ((tag & 0xFFFFFFu) == 0xFFFFFFu)
+      break;
+    packet = 0x80000000u | (tag & 0xFFFFFFu);
+  }
+
+  if (tagged)
+    psx_mod_counter_add("wild9.widescreen.panel_unstretched", tagged);
+}
+
 static void wild9_widescreen_vblank(void) {
   if (!psx_mod_game_started())
     return;
@@ -201,6 +325,8 @@ PSX_MOD_CONSTRUCTOR(wild9_register_widescreen_plugin) {
                                            wild9_widescreen_activate);
   (void)psx_mod_register_vblank_plugin("wild9.widescreen",
                                        wild9_widescreen_vblank);
+  (void)psx_mod_register_function_entry_plugin(
+      "wild9.widescreen", W9_TEXT_FLUSH_FUNC, wild9_widescreen_panels);
   /* The hook only selects code and always declines, so it charges no guest
    * cycles. */
   (void)psx_mod_register_function_override(

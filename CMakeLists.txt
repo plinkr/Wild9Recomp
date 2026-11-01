@@ -77,6 +77,22 @@ endif()
 
 target_sources(psx-runtime PRIVATE ${WILD9_MOD_PLUGIN_SOURCES})
 
+# Game data, so it travels with generated/ and never with git; without it
+# the "ja" language option stays in English.
+set(WILD9_JAPANESE_TEXT "${CMAKE_CURRENT_SOURCE_DIR}/generated/wild9_japanese_text.c")
+target_include_directories(psx-runtime PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src/mods")
+if(IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/generated")
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/generated")
+endif()
+if(EXISTS "${WILD9_JAPANESE_TEXT}")
+    target_sources(psx-runtime PRIVATE "${WILD9_JAPANESE_TEXT}")
+    target_compile_definitions(psx-runtime PRIVATE WILD9_HAVE_JAPANESE_TEXT=1)
+    message(STATUS "Wild9: Japanese text data linked (${WILD9_JAPANESE_TEXT})")
+else()
+    message(STATUS "Wild9: no generated/wild9_japanese_text.c - Japanese falls back to English")
+endif()
+
 foreach(_PSX_RUNTIME_CONFIG game.toml game_options.toml)
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${_PSX_RUNTIME_CONFIG}")
         add_custom_command(TARGET psx-runtime POST_BUILD
