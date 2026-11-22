@@ -1,0 +1,25 @@
+format_version = 5
+id = "psx.enhancement.8mb-ram"
+version = "1.0.0"
+name = "8 MB Main RAM"
+author = "psxrecomp"
+description = "Enables an opt-in 8 MB main RAM map for patches that require expanded PS1 memory. Disabled by default."
+resolver = "declarative"
+save_compatibility = "shared"
+
+# Overrides the framework builtin at the same id and version only to drop
+# `hidden = true`, so the player can enable it in the launcher before starting
+# the game. Stock Wild 9 does not need it; it stays off by default.
+[[target]]
+game_id = "*"
+
+[[feature]]
+id = "8mb-ram"
+name = "8 MB Main RAM"
+description = "Use expanded 8 MB main RAM instead of stock 2 MB mirroring. Only needed by mods written for 8 MB; the stock game does not use it. Savestates record the active size, so states from one setting do not load under the other."
+group = "Advanced"
+default_enabled = false
+
+[[plugin]]
+feature = "8mb-ram"
+id = "psx.8mb-ram"
