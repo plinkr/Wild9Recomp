@@ -1,0 +1,22 @@
+format_version = 7
+id = "wild9.fix.analog-dpad"
+version = "1.0.0"
+name = "Analog D-Pad Fix"
+author = "Wild9Recomp"
+description = "Keeps the D-pad working when the controller is in analog mode. The original game ignores it there and only reads the left stick."
+resolver = "declarative"
+save_compatibility = "shared"
+
+[[target]]
+game_id = "SLUS-00425"
+
+[[feature]]
+id = "analog_dpad"
+name = "D-Pad in Analog Mode"
+description = "With an analog controller the D-pad moves and navigates menus as it does on a digital one. When the D-pad and the stick point along the same axis, the D-pad wins."
+group = "Fixes"
+default_enabled = true
+
+[[plugin]]
+feature = "analog_dpad"
+id = "wild9.analog_dpad"
