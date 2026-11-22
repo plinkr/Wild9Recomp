@@ -1,0 +1,19 @@
+# Lint and type-check settings for the repo's Python scripts; nothing is built
+# from this file. The scripts must keep running on Python 3.10, the version of
+# the ubuntu-22.04 CI runners that execute scripts/fetch_generated_bundle.py.
+
+[tool.ruff]
+target-version = "py310"
+extend-exclude = ["psxrecomp", "recomp-ui", "generated"]
+
+[tool.basedpyright]
+pythonVersion = "3.10"
+exclude = [
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.*",
+    "psxrecomp",
+    "recomp-ui",
+    "generated",
+    "build*",
+]
