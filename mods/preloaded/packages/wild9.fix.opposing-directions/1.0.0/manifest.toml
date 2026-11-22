@@ -1,0 +1,23 @@
+format_version = 7
+id = "wild9.fix.opposing-directions"
+version = "1.0.0"
+name = "Opposing Directions Freeze Fix"
+author = "Wild9Recomp"
+description = "Stops the original freeze caused by holding Left and Right together (riding Henry or the Beast, Wex vs. Karn) by keeping only the most recent direction."
+resolver = "declarative"
+save_compatibility = "shared"
+
+[[target]]
+game_id = "SLUS-00425"
+
+[[feature]]
+id = "opposing_directions"
+name = "Opposing Directions Freeze Fix"
+description = "Holding Left and Right together (for example D-pad Left and stick Right on a digital pad) freezes the original game. With this fix the game only sees the direction pressed last; Up and Down are handled the same way."
+group = "Fixes"
+default_enabled = true
+
+[[plugin]]
+feature = "opposing_directions"
+id = "wild9.opposing_directions"
+netplay = "input"
