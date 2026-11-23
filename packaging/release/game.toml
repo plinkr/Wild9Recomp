@@ -74,6 +74,13 @@ fold_expected = [ "0x01110824", "0x02810824", "0x01610824", "0x01210824" ]
 consumer_address = "0x8001A9C4"
 consumer_expected = "0x14200049"
 
+[mod_immediate]
+# Rig beam release distance: lui v0,0x177 (6000 units). Group 1 selectors
+# 1..10 scale it 110%..200% with the beam range (wild9_rigrange_plugin.c).
+sites = [
+  { address = "0x8002B2AC", expected = "0x3C020177", group = 1, values = [ 0x19D, 0x1C2, 0x1E8, 0x20D, 0x233, 0x258, 0x27E, 0x2A3, 0x2C9, 0x2EE ] },
+]
+
 [controller]
 default_mode = "digital"
 multitap_analog = true

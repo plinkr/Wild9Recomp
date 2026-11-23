@@ -1,0 +1,33 @@
+format_version = 7
+id = "wild9.gameplay.rig-range"
+version = "1.0.0"
+name = "Rig Beam Range"
+author = "Wild9Recomp"
+description = "Lengthens the Rig beam so it can grab objects and enemies from further away. The hold-release distance grows by the same factor."
+resolver = "declarative"
+save_compatibility = "shared"
+
+[[target]]
+game_id = "SLUS-00425"
+
+[[feature]]
+id = "rig_range"
+name = "Rig Beam Range"
+description = "Scales how far the Rig beam reaches, from the original length up to twice as long. The distance at which a held object breaks free scales with it, so far grabs are not dropped right away."
+group = "Gameplay"
+default_enabled = false
+
+[[option]]
+feature = "rig_range"
+id = "range_percent"
+label = "Beam length"
+description = "Rig beam length as a percentage of the original (100 = vanilla, 200 = twice as long)."
+type = "integer"
+min = 100
+max = 200
+step = 10
+default = 100
+
+[[plugin]]
+feature = "rig_range"
+id = "wild9.rigrange"
