@@ -1,5 +1,6 @@
 #include "cpu_state.h"
 #include "mod_plugins.h"
+#include "wild9_rig_hold.h"
 
 #define PKG_WS "wild9.enhancement.widescreen"
 
@@ -316,6 +317,7 @@ static void wild9_widescreen_vblank(void) {
 
 static void wild9_widescreen_activate(void) {
   psx_mod_set_fixed_display_aspect(16, 9);
+  wild9_rigrange_set_widescreen(1);
 }
 
 PSX_MOD_CONSTRUCTOR(wild9_register_widescreen_plugin) {

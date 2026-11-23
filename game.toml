@@ -74,10 +74,21 @@ consumer_address = "0x8001A9C4"
 consumer_expected = "0x14200049"
 
 [mod_immediate]
-# Rig beam release distance: lui v0,0x177 (6000 units). Group 1 selectors
-# 1..10 scale it 110%..200% with the beam range (wild9_rigrange_plugin.c).
+# Rig Beam Range (wild9_rigrange_plugin.c).
+# Group 1: release distance, lui v0,0x177 (6000 units).
+# Group 2: longest anchor-point rope, lui v1,0xFA (4000 units).
+# Selectors 1..10 of both are 110%..200% in 10% steps, 11..15 are 260%..500%
+# in 60% steps.
+# Group 3: far edge of the hold band, 3250 units as lui/ori plus addiu.
+# Selector 1 is 5000 for 4:3, selector 2 is 7000 for the Widescreen mod.
+# For a distance D below 32768: lui (D * 4096) >> 16, ori (D * 4096) & 0xFFFF,
+# addiu D.
 sites = [
-  { address = "0x8002B2AC", expected = "0x3C020177", group = 1, values = [ 0x19D, 0x1C2, 0x1E8, 0x20D, 0x233, 0x258, 0x27E, 0x2A3, 0x2C9, 0x2EE ] },
+  { address = "0x8002B2AC", expected = "0x3C020177", group = 1, values = [ 0x19D, 0x1C2, 0x1E8, 0x20D, 0x233, 0x258, 0x27E, 0x2A3, 0x2C9, 0x2EE, 0x3CF, 0x4B0, 0x591, 0x672, 0x753 ] },
+  { address = "0x8002C240", expected = "0x3C0300FA", group = 2, values = [ 0x113, 0x12C, 0x145, 0x15E, 0x177, 0x190, 0x1A9, 0x1C2, 0x1DB, 0x1F4, 0x28A, 0x320, 0x3B6, 0x44C, 0x4E2 ] },
+  { address = "0x8002BB94", expected = "0x3C0200CB", group = 3, values = [ 0x138, 0x1B5 ] },
+  { address = "0x8002BB98", expected = "0x34422000", group = 3, values = [ 0x8000, 0x8000 ] },
+  { address = "0x8002BBA4", expected = "0x24020CB2", group = 3, values = [ 0x1388, 0x1B58 ] },
 ]
 
 [controller]
