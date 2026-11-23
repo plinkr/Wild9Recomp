@@ -1,0 +1,33 @@
+format_version = 7
+id = "wild9.gameplay.enemy-health"
+version = "1.0.0"
+name = "Enemy Health"
+author = "Wild9Recomp"
+description = "Changes how much health enemies have, from half the original up to five times as much. Boss health bars scale with it."
+resolver = "declarative"
+save_compatibility = "shared"
+
+[[target]]
+game_id = "SLUS-00425"
+
+[[feature]]
+id = "enemy_health"
+name = "Enemy Health"
+description = "Scales the health of enemies, bosses and destructible objects, from half the original up to five times as much. Boss health bars still start full and drain in step with the new total. Wex and pickups keep their original health, and the damage each attack deals is unchanged."
+group = "Gameplay"
+default_enabled = false
+
+[[option]]
+feature = "enemy_health"
+id = "health_percent"
+label = "Enemy health"
+description = "Enemy health as a percentage of the original (50 = half, 100 = vanilla, 500 = five times as much)."
+type = "integer"
+min = 50
+max = 500
+step = 10
+default = 100
+
+[[plugin]]
+feature = "enemy_health"
+id = "wild9.enemyhealth"
