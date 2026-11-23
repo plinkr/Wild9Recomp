@@ -1,0 +1,50 @@
+format_version = 7
+id = "wild9.enhancement.beam-color"
+version = "1.0.0"
+name = "Rig Beam Color"
+author = "Wild9Recomp"
+description = "Changes the color of the Rig beam and its sparks. The red beam and the cable swing beam keep their original colors."
+resolver = "declarative"
+save_compatibility = "shared"
+
+[[target]]
+game_id = "SLUS-00425"
+
+[[feature]]
+id = "beam_color"
+name = "Rig Beam Color"
+description = "Recolors the normal Rig beam and its sparks. The red beam you get with a full Rig power meter and the green beam used while swinging on a cable keep their original colors."
+group = "Graphics"
+default_enabled = false
+
+[[option]]
+feature = "beam_color"
+id = "color"
+label = "Beam color"
+description = "Color of the normal Rig beam."
+type = "choice"
+default = "blue"
+
+[[option.choice]]
+value = "blue"
+label = "Blue (original)"
+
+[[option.choice]]
+value = "green"
+label = "Green"
+
+[[option.choice]]
+value = "yellow"
+label = "Yellow"
+
+[[option.choice]]
+value = "violet"
+label = "Violet"
+
+[[option.choice]]
+value = "purple"
+label = "Purple"
+
+[[plugin]]
+feature = "beam_color"
+id = "wild9.beamcolor"
