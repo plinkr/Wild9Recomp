@@ -55,6 +55,15 @@ default = "false"
 
 [[option]]
 feature = "cheats"
+id = "infinite_rig_energy"
+label = "Infinite Rig Energy"
+description = "Keeps the Rig beam energy full, so the beam never runs out."
+group = "General"
+type = "boolean"
+default = "false"
+
+[[option]]
+feature = "cheats"
 id = "drench_infinite_health"
 label = "Infinite Health"
 description = "Restores health to maximum (17) in the Drench level."

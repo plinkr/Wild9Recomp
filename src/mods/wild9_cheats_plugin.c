@@ -10,6 +10,12 @@
 #define W9_MISSILES_ADDR 0x8007B444u
 #define W9_PAD_ADDR 0x8007C788u
 #define W9_Y_VEL_ADDR 0x80084492u
+/* int32 globals; rig_energy_max_add (0x800522A4) keeps the max in 500..1000,
+ * and 1000 is reached by energy upgrades or the pause "Red beam" code. */
+#define W9_RIG_ENERGY_ADDR 0x8007B630u
+#define W9_RIG_ENERGY_MAX_ADDR 0x8007B634u
+#define W9_RIG_ENERGY_DEFAULT 500u
+#define W9_RIG_ENERGY_CAP 1000u
 
 /* Memory addresses for Drench Level Codes */
 #define W9_DRENCH_HEALTH_ADDR 0x80084786u
@@ -23,6 +29,7 @@ static int s_infinite_lives = 0;
 static int s_infinite_health = 0;
 static int s_infinite_missiles = 0;
 static int s_moon_jump = 0;
+static int s_infinite_rig_energy = 0;
 static int s_drench_infinite_health = 0;
 static int s_drench_moon_jump = 0;
 
@@ -38,6 +45,7 @@ static void wild9_cheats_activate(void) {
   s_infinite_health = cheat_option_flag("infinite_health");
   s_infinite_missiles = cheat_option_flag("infinite_missiles");
   s_moon_jump = cheat_option_flag("moon_jump");
+  s_infinite_rig_energy = cheat_option_flag("infinite_rig_energy");
   s_drench_infinite_health = cheat_option_flag("drench_infinite_health");
   s_drench_moon_jump = cheat_option_flag("drench_moon_jump");
   s_initialized = 1;
@@ -80,6 +88,16 @@ static void wild9_cheats_vblank(void) {
     if ((pad & W9_PAD_JUMP_MASK) != 0) {
       psx_mod_write_half(W9_Y_VEL_ADDR, W9_MOON_JUMP_VEL);
     }
+  }
+
+  /* Infinite Rig Energy: 8007B630 01F4. Refill to the current max rather than
+   * a fixed 500 so the bar stays full after the max grows to 1000. */
+  if (s_infinite_rig_energy) {
+    uint32_t max = psx_mod_read_word(W9_RIG_ENERGY_MAX_ADDR);
+    if (max < W9_RIG_ENERGY_DEFAULT || max > W9_RIG_ENERGY_CAP)
+      max = W9_RIG_ENERGY_DEFAULT;
+    if (psx_mod_read_word(W9_RIG_ENERGY_ADDR) != max)
+      psx_mod_write_word(W9_RIG_ENERGY_ADDR, max);
   }
 
   /* Drench Level - Infinite Health: D0084786 0010 -> 80084786 0011 */

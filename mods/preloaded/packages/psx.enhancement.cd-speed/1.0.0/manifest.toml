@@ -1,0 +1,38 @@
+format_version = 5
+id = "psx.enhancement.cd-speed"
+version = "1.0.0"
+name = "CD Speed"
+author = "psxrecomp"
+description = "Emulated CD drive speed. Shortens loads without speeding the game up. Disabled by default."
+resolver = "declarative"
+save_compatibility = "shared"
+
+# Overrides the framework builtin at the same id and version to drop
+# `hidden = true`, so the player can find it in the launcher. The bounded
+# instant scheduler options are left out, being the riskiest mode, and the
+# multiplier is capped at 16; x4 is the setting played on Wild 9 so far.
+[[target]]
+game_id = "*"
+
+[[feature]]
+id = "cd-speed"
+name = "CD Speed"
+description = "Disabled by default. Divides the emulated sector delay, so the drive delivers data sooner while the game itself keeps running at normal speed. A high value can expose timing bugs, so raise it gradually and back off if a load stalls. FMV and CD audio always keep authentic timing."
+group = "Quality of Life"
+default_enabled = false
+
+[[option]]
+feature = "cd-speed"
+id = "multiplier"
+label = "CD speed multiplier"
+description = "1 is authentic 1x. 4 is the recommended setting; higher is faster but likelier to trip a timing bug."
+group = "Quality of Life"
+type = "integer"
+min = 1
+max = 16
+step = 1
+default = 4
+
+[[plugin]]
+feature = "cd-speed"
+id = "psx.cd-speed"

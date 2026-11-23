@@ -1,0 +1,38 @@
+format_version = 5
+id = "psx.enhancement.fast-loading"
+version = "1.0.0"
+name = "Fast Loading (host pacing)"
+author = "psxrecomp"
+description = "Runs detected loads faster than real time. Disabled by default."
+resolver = "declarative"
+save_compatibility = "shared"
+
+# Overrides the framework builtin at the same id and version to drop
+# `hidden = true`, so the player can find it in the launcher. The multiplier is
+# capped at 16 (x8 is what has been played on Wild 9 so far) and the uncapped
+# mode is left out.
+[[target]]
+game_id = "*"
+
+[[feature]]
+id = "fast-loading"
+name = "Fast Loading (host pacing)"
+description = "Disabled by default. Speeds up host pacing while a generic detector sees the game loading, so loads finish sooner in real time. It does not change CD timing, but the game also runs faster for as long as the detector reports a load."
+group = "Quality of Life"
+default_enabled = false
+
+[[option]]
+feature = "fast-loading"
+id = "multiplier"
+label = "Host speed multiplier"
+description = "How much faster than real time a load may run. 1 is authentic; 4 is the recommended setting."
+group = "Quality of Life"
+type = "integer"
+min = 1
+max = 16
+step = 1
+default = 4
+
+[[plugin]]
+feature = "fast-loading"
+id = "psx.fast-loading"

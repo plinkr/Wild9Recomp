@@ -106,6 +106,7 @@ All mods are set up from the **Mods** tab in the launcher before starting the ga
 - **Language:** English, French, German, Italian, Spanish, or Japanese. Japanese uses the script and font from Wildroid 9 (the Japanese release), already included in release builds, so you still only need the USA disc.
 - **Enhanced Brightness:** Brightens dark areas and shadows. Default is `1.30`; set it to `1.00` for the original look. Requires the OpenGL renderer.
 - **Rig Overhead Hover:** Carrying things with the Rig is one of the most awkward parts of the original game, for example taking the Nitro through the Gulag level. With this mod, hold both triggers (`R2` + `L2`, or `RT` + `LT` on Xbox-style pads) and whatever you are holding stays fixed above Wex while you run and jump. Release the triggers to get the normal Rig controls back, for example to slam an enemy. The hover height can be adjusted (2000 to 5000, default 2400).
+- **CD Speed** and **Fast Loading:** Shorter loading times. Both are off by default; `4` is the recommended multiplier, and very high values can stall a load.
 - **Debug Overlay:** Shows the game's built-in performance counters (CPU, GPU, memory, draw calls).
 - **Gameplay Cheats:** See [Cheats](#cheats).
 
@@ -136,6 +137,7 @@ Turn them on in the **Mods** tab (all are off by default):
 - **Infinite Health:** Health refills after taking damage.
 - **Infinite Missiles on Pick-Up:** Missiles stay at 3 once you collect them.
 - **Moon Jump:** Hold Jump (`Cross`) to keep rising.
+- **Infinite Rig Energy:** The Rig beam's energy bar stays full.
 - **Infinite Health (Drench)** and **Moon Jump (Drench)**: Same as above, but for the Drench level, which needs its own version.
 
 ---
