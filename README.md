@@ -108,6 +108,7 @@ All mods are set up from the **Mods** tab in the launcher before starting the ga
 - **Rig Overhead Hover:** Carrying things with the Rig is one of the most awkward parts of the original game, for example taking the Nitro through the Gulag level. With this mod, hold both triggers (`R2` + `L2`, or `RT` + `LT` on Xbox-style pads) and whatever you are holding stays fixed above Wex while you run and jump. Release the triggers to get the normal Rig controls back, for example to slam an enemy. The hover height can be adjusted (2000 to 5000, default 2400).
 - **CD Speed** and **Fast Loading:** Shorter loading times. Both are off by default; `4` is the recommended multiplier, and very high values can stall a load.
 - **Debug Overlay:** Shows the game's built-in performance counters (CPU, GPU, memory, draw calls).
+- **Developer Level Select:** Replaces the main menu with the developers' level select left on the disc, every time or only at startup. Press `Start` or `Cross` to load an entry; **MAL MENU** opens the normal main menu. Gavin, Mal and the model and animation viewers have no data on the disc, so they load nothing.
 - **Gameplay Cheats:** See [Cheats](#cheats).
 
 ---
@@ -125,6 +126,8 @@ All mods are set up from the **Mods** tab in the launcher before starting the ga
 | Red beam | `Right`, `Up`, `Left`, `Circle`, `Up`, `Circle`, `Circle` |
 | 10 extra grenades | `R1`, `Cross`, `R1`, `Right`, `Square`, `Right`, `Square` |
 | 10 extra missiles | `Cross`, `Circle`, `R1`, `Right`, `Triangle`, `Cross`, `Triangle` |
+| Developer flight mode: hold `L2` to fly with the D-pad, invulnerable | `Left`, `Up`, `Left`, `Triangle`, `Down`, `Triangle`, `Circle` |
+| Pokkit (Craterscape only) | `Cross`, `Right`, `Down`, `Triangle`, `Up`, `Cross`, `Triangle` |
 
 ### Built-in Cheats via Launcher (Mods)
 

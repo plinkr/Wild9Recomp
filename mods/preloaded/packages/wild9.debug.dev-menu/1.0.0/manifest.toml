@@ -1,0 +1,38 @@
+format_version = 6
+id = "wild9.debug.dev-menu"
+version = "1.0.0"
+name = "Developer Level Select"
+author = "Wild9Recomp"
+description = "Replaces the main menu with the developers' level select hidden in the original 1998 Wild 9 game."
+resolver = "declarative"
+save_compatibility = "shared"
+
+[[target]]
+game_id = "SLUS-00425"
+
+[[feature]]
+id = "dev_menu"
+name = "Developer Level Select"
+description = "Opens the hidden developer menu instead of the main menu. It lists every level, the language select screen and the developers' own entries. Press Start or Cross to load an entry; MAL MENU opens the normal main menu. Gavin, Mal and the model and animation viewers have no data on the disc, so they load nothing."
+group = "Debug"
+default_enabled = false
+
+[[option]]
+feature = "dev_menu"
+id = "open_on"
+label = "Open the menu"
+description = "When the developer menu replaces the main menu."
+type = "choice"
+default = "always"
+
+[[option.choice]]
+value = "always"
+label = "Every time"
+
+[[option.choice]]
+value = "startup"
+label = "Only at startup"
+
+[[plugin]]
+feature = "dev_menu"
+id = "wild9.devmenu"
