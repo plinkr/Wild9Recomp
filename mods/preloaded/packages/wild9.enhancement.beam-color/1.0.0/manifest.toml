@@ -21,7 +21,7 @@ default_enabled = false
 feature = "beam_color"
 id = "color"
 label = "Beam color"
-description = "Color of the normal Rig beam."
+description = "Color of the normal Rig beam when Color animation is Off."
 type = "choice"
 default = "blue"
 
@@ -44,6 +44,49 @@ label = "Violet"
 [[option.choice]]
 value = "purple"
 label = "Purple"
+
+[[option.choice]]
+value = "cyan"
+label = "Cyan"
+
+[[option.choice]]
+value = "pink"
+label = "Pink"
+
+[[option.choice]]
+value = "white"
+label = "White"
+
+[[option]]
+feature = "beam_color"
+id = "animation"
+label = "Color animation"
+description = "Cycle turns the whole beam through orange, yellow, green, cyan, blue, violet, purple and pink. Rainbow shows those colors at once as bands that travel from Wex to the tip of the beam. Both ignore Beam color."
+type = "choice"
+default = "off"
+
+[[option.choice]]
+value = "off"
+label = "Off"
+
+[[option.choice]]
+value = "cycle"
+label = "Cycle"
+
+[[option.choice]]
+value = "rainbow"
+label = "Rainbow"
+
+[[option]]
+feature = "beam_color"
+id = "color_time"
+label = "Time per color"
+description = "How long each color lasts in the animations, in tenths of a second (10 = 1 second). With Rainbow it is how long each band takes to pass a point of the beam."
+type = "integer"
+min = 3
+max = 50
+step = 1
+default = 10
 
 [[plugin]]
 feature = "beam_color"

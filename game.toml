@@ -25,7 +25,7 @@ out_dir = "generated"
 strict = true
 mod_function_entry_funcs = [ "0x8005706C", "0x80056E80", "0x80057024", "0x8002B8CC", "0x80020BA4", "0x8001FD54", "0x80025DF4", "0x80025E3C", "0x80025CE8", "0x800258EC", "0x8001576C" ]
 # Rig Beam Color (wild9_beam_color_plugin.c).
-mod_instruction_sites = [ "0x8004CA78", "0x8004D04C", "0x8004D56C" ]
+mod_instruction_sites = [ "0x8004CA78", "0x8004CE00", "0x8004D04C", "0x8004D56C" ]
 
 [runtime]
 window_title = "Wild 9 Recompiled"
