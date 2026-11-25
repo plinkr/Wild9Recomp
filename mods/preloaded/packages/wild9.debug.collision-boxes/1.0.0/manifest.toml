@@ -1,0 +1,110 @@
+format_version = 6
+id = "wild9.debug.collision-boxes"
+version = "1.0.0"
+name = "Collision Boxes"
+author = "Wild9Recomp"
+description = "Shows the hitboxes of Wex, enemies, bosses, projectiles and the hidden warps."
+resolver = "declarative"
+save_compatibility = "shared"
+
+[[target]]
+game_id = "SLUS-00425"
+
+[[feature]]
+id = "collision_boxes"
+name = "Collision Boxes"
+description = "Draws the boxes the game uses for collisions, visible even through walls. Red boxes deal damage, yellow ones react to being touched or hit, green ones can only be hit, and white is Wex's body. Choose below which ones to show."
+group = "Debug"
+default_enabled = false
+
+[[option]]
+feature = "collision_boxes"
+id = "show_warps"
+label = "Warp Triggers"
+description = "Fills in the trigger of each hidden warp. Wex warps when he touches one. Only Wreckage (three warps) and Drench (one) have them."
+type = "boolean"
+default = "true"
+
+[[option]]
+feature = "collision_boxes"
+id = "show_destinations"
+label = "Warp Destinations"
+description = "Marks where each warp leads, in the colour of its trigger. Wex lands on the nearest floor below the mark."
+type = "boolean"
+default = "true"
+
+[[option]]
+feature = "collision_boxes"
+id = "show_wex"
+label = "Wex"
+description = "Wex's body, the hitboxes on each part of him and the boxes some of his moves add."
+type = "boolean"
+default = "true"
+
+[[option]]
+feature = "collision_boxes"
+id = "show_rig"
+label = "Rig Beam"
+description = "The boxes along the Rig beam that grab whatever they touch."
+type = "boolean"
+default = "true"
+
+[[option]]
+feature = "collision_boxes"
+id = "show_enemies"
+label = "Enemies"
+description = "Grunts, little green men, spear throwers and the rest, plus the machines that spawn them."
+type = "boolean"
+default = "true"
+
+[[option]]
+feature = "collision_boxes"
+id = "show_bosses"
+label = "Bosses"
+description = "Filbert, Karn, the bosses of levels 4 and 14, and the Beast."
+type = "boolean"
+default = "true"
+
+[[option]]
+feature = "collision_boxes"
+id = "show_wex_projectiles"
+label = "Wex's Projectiles"
+description = "Wex's rockets, missiles and explosions. They never hurt Wex."
+type = "boolean"
+default = "true"
+
+[[option]]
+feature = "collision_boxes"
+id = "show_enemy_projectiles"
+label = "Enemy Projectiles"
+description = "Spears, bombs and anything else enemies throw at Wex."
+type = "boolean"
+default = "true"
+
+[[option]]
+feature = "collision_boxes"
+id = "show_hazards"
+label = "Hazards and Mechanisms"
+description = "Blades, flames, spikes and other traps, plus doors and moving platforms."
+type = "boolean"
+default = "false"
+
+[[option]]
+feature = "collision_boxes"
+id = "show_objects"
+label = "Grabbable Objects"
+description = "Crates, batteries, keys and anything else the Rig can grab and throw, plus grapple points."
+type = "boolean"
+default = "false"
+
+[[option]]
+feature = "collision_boxes"
+id = "show_triggers"
+label = "Triggers and Pickups"
+description = "Checkpoints, extra lives, level exits, levers, and the slots where objects are dropped."
+type = "boolean"
+default = "false"
+
+[[plugin]]
+feature = "collision_boxes"
+id = "wild9.collision_boxes"

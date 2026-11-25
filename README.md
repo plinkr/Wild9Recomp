@@ -108,7 +108,8 @@ All mods are set up from the **Mods** tab in the launcher before starting the ga
 - **Rig Overhead Hover:** Carrying things with the Rig is one of the most awkward parts of the original game, for example taking the Nitro through the Gulag level. With this mod, hold both triggers (`R2` + `L2`, or `RT` + `LT` on Xbox-style pads) and whatever you are holding stays fixed above Wex while you run and jump. Release the triggers to get the normal Rig controls back, for example to slam an enemy. The hover height can be adjusted (2000 to 5000, default 2400).
 - **CD Speed** and **Fast Loading:** Shorter loading times. Both are off by default; `4` is the recommended multiplier, and very high values can stall a load.
 - **Debug Overlay:** Shows the game's built-in performance counters (CPU, GPU, memory, draw calls).
-- **Developer Level Select:** Replaces the main menu with the developers' level select left on the disc, every time or only at startup. Press `Start` or `Cross` to load an entry; **MAL MENU** opens the normal main menu. Gavin, Mal and the model and animation viewers have no data on the disc, so they load nothing.
+- **Developer Level Select:** Opens the developers' hidden level select instead of the main menu. Pick a level with `Start` or `Cross`, or choose **MAL MENU** to go to the normal menu. A few entries load nothing because their data isn't on the disc.
+- **Collision Boxes:** Shows the hitboxes of Wex, enemies, bosses and projectiles, even through walls. It also shows the hidden warps in Wreckage and Drench. You choose which groups to show.
 - **Gameplay Cheats:** See [Cheats](#cheats).
 
 ---
