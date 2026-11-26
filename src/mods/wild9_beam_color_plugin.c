@@ -1,4 +1,5 @@
 #include "cpu_state.h"
+#include "gpu.h"
 #include "mod_plugins.h"
 
 #include <stdint.h>
@@ -6,11 +7,11 @@
 
 /*
  * The normal Rig beam (sprite 0x1E) takes its color from one CLUT, so a
- * pre-hook on beam_trail_draw re-uploads a recolored CLUT once per vblank,
- * after any level VRAM reload. The red and cable swing beams have their own
- * CLUTs and stay vanilla. The instruction sites in game.toml recolor what the
- * CLUT does not reach: the trail fade, two kinds of sparks and, for the
- * rainbow, the vertex colors of each trail segment.
+ * pre-hook on beam_trail_draw uploads a recolored CLUT whenever VRAM does not
+ * already hold it, such as after a level VRAM reload. The red and cable swing
+ * beams have their own CLUTs and stay vanilla. The instruction sites in
+ * game.toml recolor what the CLUT does not reach: the trail fade, two kinds of
+ * sparks and, for the rainbow, the vertex colors of each trail segment.
  *
  * Cycle mode rebuilds the CLUT every logic frame. Rainbow mode builds a grey
  * CLUT once and tints each segment through its vertex colors, since one CLUT
@@ -355,6 +356,18 @@ static int w9_clut_used_only_by_beam(uint16_t clut) {
   return 1;
 }
 
+/* With HD textures on, every upload makes the render thread hand its GL context
+ * to the emulation thread for the rest of the frame, and uploading each frame
+ * dropped the game well below full speed. Uploads always land in
+ * gpu_get_vram(), so an unchanged CLUT is skipped. */
+static int w9_clut_in_vram(uint16_t clut) {
+  const uint16_t *vram = gpu_get_vram();
+  const uint32_t x = (clut & 0x3Fu) * 16u;
+  const uint32_t y = (uint32_t)(clut >> 6) & 0x1FFu;
+
+  return vram && memcmp(vram + y * 1024u + x, s_clut, sizeof(s_clut)) == 0;
+}
+
 /* LoadImage reads guest RAM, so the CLUT is staged over the trail data and
  * the original words are restored after the synchronous upload. */
 static int w9_upload_clut(uint32_t stage, uint16_t clut) {
@@ -370,8 +383,8 @@ static int w9_upload_clut(uint32_t stage, uint16_t clut) {
   }
   ok = psx_mod_psyq_load_image((clut & 0x3Fu) * 16u, clut >> 6, CLUT_ENTRIES,
                                1u, stage);
-  if (!ok)
-    psx_mod_counter_add("wild9.beamcolor.upload_failed", 1u);
+  psx_mod_counter_add(
+      ok ? "wild9.beamcolor.uploads" : "wild9.beamcolor.upload_failed", 1u);
   for (i = 0; i < CLUT_ENTRIES / 2u; ++i)
     psx_mod_write_word(stage + 4u * i, saved[i]);
   return ok;
@@ -399,6 +412,10 @@ static int w9_beam_draw(struct CPUState *cpu) {
       psx_mod_counter_add("wild9.beamcolor.mixed_clut", 1u);
       return 0;
     }
+  if (w9_clut_in_vram(clut)) {
+    s_clut_ready = 1;
+    return 0;
+  }
   if (!w9_clut_used_only_by_beam(clut)) {
     psx_mod_counter_add("wild9.beamcolor.shared_clut", 1u);
     return 0;
@@ -523,7 +540,7 @@ static void w9_beam_color_session_reset(void) {
   s_clut_ready = 0;
 }
 
-/* A restored state brings back its own VRAM, so upload again. */
+/* A restored state brings back its own VRAM, so check the CLUT again. */
 static void w9_beam_color_savestate(void) {
   s_uploaded_vblank = UINT32_MAX;
   s_refreshed_frame = UINT32_MAX;

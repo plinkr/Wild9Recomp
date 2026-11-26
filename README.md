@@ -101,6 +101,7 @@ Optionally open the **Mods** tab to turn on widescreen, higher frame rates, lang
 All mods are set up from the **Mods** tab in the launcher before starting the game.
 
 - **Widescreen:** Shows more of the level to the sides in 16:9.
+- **Slowdown Fix:** The original game drops from 30 to 20 fps, and to two thirds of its speed, in busy areas such as Crystal Mine. This keeps it at full speed there. On by default; turn it off for the original behavior.
 - **Frame Rate:** Smoother motion at 60, 120, 144, 165 FPS or your display's refresh rate. The game itself still runs at its original speed. Requires the OpenGL renderer.
 - **FMV Skip:** Skip intro videos with a button press. `Start` by default; can be changed to `Cross`, `Square`, `Triangle`, or `Select`.
 - **Language:** English, French, German, Italian, Spanish, or Japanese. Japanese uses the script and font from Wildroid 9 (the Japanese release), already included in release builds, so you still only need the USA disc.

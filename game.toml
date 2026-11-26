@@ -30,6 +30,17 @@ mod_instruction_sites = [ "0x8004CA78", "0x8004CE00", "0x8004D04C", "0x8004D56C"
 [runtime]
 window_title = "Wild 9 Recompiled"
 memcard_dir = "saves"
+# Both sites are in v_wait (0x8005783C), the VSync spin. Its counter is a
+# private stack word stored once per pass, and only the timeout test reads it.
+idle_skip = true
+idle_skip_store_counters = true
+idle_skip_store_counter_sites = [ "0x80057864", "0x800578AC" ]
+
+[timing]
+# Only active while the Slowdown Fix mod opens the gate.
+guest_cycle_scale = 4
+guest_cycle_scale_gated = true
+guest_cycle_scale_batch = true
 
 [video]
 renderer = "opengl"

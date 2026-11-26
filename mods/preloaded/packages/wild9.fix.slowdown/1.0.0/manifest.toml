@@ -1,0 +1,22 @@
+format_version = 7
+id = "wild9.fix.slowdown"
+version = "1.0.0"
+name = "Slowdown Fix"
+author = "Wild9Recomp"
+description = "Removes the original game's slowdown in busy areas such as Crystal Mine, where it drops from 30 to 20 fps and to two thirds of its speed."
+resolver = "declarative"
+save_compatibility = "shared"
+
+[[target]]
+game_id = "SLUS-00425"
+
+[[feature]]
+id = "slowdown_fix"
+name = "Slowdown Fix"
+description = "Keeps the game at full speed where the original slows down. Game logic and physics are unchanged. Turn it off for the original behavior."
+group = "Fixes"
+default_enabled = true
+
+[[plugin]]
+feature = "slowdown_fix"
+id = "wild9.slowdown_fix"
