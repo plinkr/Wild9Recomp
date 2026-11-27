@@ -1,0 +1,22 @@
+format_version = 7
+id = "wild9.fix.grabbed-enemy"
+version = "1.0.0"
+name = "Grabbed Enemy Instant Kill Fix"
+author = "Wild9Recomp"
+description = "Fixes the original bug where a small green enemy, after being grabbed and dropped with the Rig, could kill Wex at once by walking into him while the Rig was out."
+resolver = "declarative"
+save_compatibility = "shared"
+
+[[target]]
+game_id = "SLUS-00425"
+
+[[feature]]
+id = "grabbed_enemy_fix"
+name = "Grabbed Enemy Instant Kill Fix"
+description = "After the Rig drops one of the small green enemies, its script is meant to restore its normal attack but reads a garbage value instead. Touching it could then take all of Wex's health (or heal him). With this fix it hits as hard as before it was grabbed. Turn it off for the original behavior."
+group = "Fixes"
+default_enabled = true
+
+[[plugin]]
+feature = "grabbed_enemy_fix"
+id = "wild9.grabbed_enemy_fix"

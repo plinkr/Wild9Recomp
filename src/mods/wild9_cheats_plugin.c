@@ -4,7 +4,6 @@
 #define PKG_CHEATS "wild9.gameplay.cheats"
 #define FEATURE_CHEATS "cheats"
 
-/* Memory addresses for General Cheats */
 #define W9_LIVES_ADDR 0x8007B35Cu
 #define W9_HEALTH_ADDR 0x80084466u
 #define W9_MISSILES_ADDR 0x8007B444u
@@ -17,7 +16,6 @@
 #define W9_RIG_ENERGY_DEFAULT 500u
 #define W9_RIG_ENERGY_CAP 1000u
 
-/* Memory addresses for Drench Level Codes */
 #define W9_DRENCH_HEALTH_ADDR 0x80084786u
 #define W9_DRENCH_Y_VEL_ADDR 0x800847B2u
 
@@ -58,7 +56,7 @@ static void wild9_cheats_vblank(void) {
   if (!s_initialized)
     wild9_cheats_activate();
 
-  /* Infinite Lives: D007B35C 0002 -> 8007B35C 0003 */
+  /* GameShark D007B35C 0002 -> 8007B35C 0003 */
   if (s_infinite_lives) {
     uint16_t lives = psx_mod_read_half(W9_LIVES_ADDR);
     if (lives == 0x0002u || lives == 0x0001u) {
@@ -66,7 +64,7 @@ static void wild9_cheats_vblank(void) {
     }
   }
 
-  /* Infinite Health: D0084466 000F -> 80084466 0010 */
+  /* GameShark D0084466 000F -> 80084466 0010 */
   if (s_infinite_health) {
     uint16_t health = psx_mod_read_half(W9_HEALTH_ADDR);
     if (health == 0x000Fu || (health > 0 && health < 0x0010u)) {
@@ -74,7 +72,7 @@ static void wild9_cheats_vblank(void) {
     }
   }
 
-  /* Infinite Missiles on Pick-Up: D007B444 0002 -> 8007B444 0003 */
+  /* GameShark D007B444 0002 -> 8007B444 0003 */
   if (s_infinite_missiles) {
     uint16_t missiles = psx_mod_read_half(W9_MISSILES_ADDR);
     if (missiles == 0x0002u || missiles == 0x0001u) {
@@ -82,7 +80,7 @@ static void wild9_cheats_vblank(void) {
     }
   }
 
-  /* Moon Jump: D007C788 0040 -> 80084492 FFF0 */
+  /* GameShark D007C788 0040 -> 80084492 FFF0 */
   if (s_moon_jump) {
     uint16_t pad = psx_mod_read_half(W9_PAD_ADDR);
     if ((pad & W9_PAD_JUMP_MASK) != 0) {
@@ -90,8 +88,8 @@ static void wild9_cheats_vblank(void) {
     }
   }
 
-  /* Infinite Rig Energy: 8007B630 01F4. Refill to the current max rather than
-   * a fixed 500 so the bar stays full after the max grows to 1000. */
+  /* GameShark 8007B630 01F4, but refilled to the current max rather than a
+   * fixed 500 so the bar stays full after the max grows to 1000. */
   if (s_infinite_rig_energy) {
     uint32_t max = psx_mod_read_word(W9_RIG_ENERGY_MAX_ADDR);
     if (max < W9_RIG_ENERGY_DEFAULT || max > W9_RIG_ENERGY_CAP)
@@ -100,7 +98,7 @@ static void wild9_cheats_vblank(void) {
       psx_mod_write_word(W9_RIG_ENERGY_ADDR, max);
   }
 
-  /* Drench Level - Infinite Health: D0084786 0010 -> 80084786 0011 */
+  /* GameShark D0084786 0010 -> 80084786 0011 */
   if (s_drench_infinite_health) {
     uint16_t drench_health = psx_mod_read_half(W9_DRENCH_HEALTH_ADDR);
     if (drench_health == 0x0010u ||
@@ -109,7 +107,7 @@ static void wild9_cheats_vblank(void) {
     }
   }
 
-  /* Drench Level - Moon Jump: D007C788 0040 -> 800847B2 FFF0 */
+  /* GameShark D007C788 0040 -> 800847B2 FFF0 */
   if (s_drench_moon_jump) {
     uint16_t pad = psx_mod_read_half(W9_PAD_ADDR);
     if ((pad & W9_PAD_JUMP_MASK) != 0) {

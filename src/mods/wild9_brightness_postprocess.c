@@ -2,29 +2,10 @@
 #include <stdlib.h>
 
 /*
- * Wild 9 - Post-Process Display Gamma / Brightness Plugin
- *
- * Uses the public gl_renderer_set_post_gamma(float gamma) API of the
- * OpenGL renderer to adjust final display gamma at runtime without
- * modifying guest rendering state, textures, or generated/recompiled game code.
- *
- * The adjustment is applied in the final OpenGL presentation stage, after
- * the game frame has been rendered.
- *
- * Behavior:
- *   - gamma = 1.0 preserves the default presentation (vanilla).
- *   - Values greater than 1.0 lift shadows and mid-tones.
- *   - The adjustment applies only to game content and temporal interpolation
- * passes.
- *   - Host UI elements, bezels, and previously composed frames are left
- * untouched.
- *   - Changing the gamma value invalidates the presentation buffer so the new
- *     value becomes visible immediately, without requiring additional guest
- * VRAM writes.
- *
- * This is useful for Wild 9 where the original presentation is excessively dark
- * (heavy distance darkening), while keeping the adjustment entirely in the
- * renderer's post-presentation stage.
+ * Wild 9 is very dark, mostly from its heavy distance darkening. This lifts
+ * shadows and mid-tones through the OpenGL renderer's presentation gamma, so
+ * guest rendering state, textures and the recompiled code stay untouched and
+ * host UI and bezels are not affected. A gamma of 1.0 is vanilla.
  */
 
 #define PKG_BRIGHTNESS "wild9.enhancement.brightness"
@@ -49,12 +30,11 @@ static float wild9_get_gamma_option(void) {
   if (!end || end == text)
     return W9_DEFAULT_POST_GAMMA;
 
-  /* Support percentage/scaled integer representations (e.g. 100..200
-   * -> 1.0..2.0) */
+  /* Percentages are accepted too: 130 means 1.30. */
   if (gamma >= 10.0f)
     gamma /= 100.0f;
 
-  /* Clamp to safe bounds supported by gl_renderer_set_post_gamma */
+  /* Same range gl_renderer_set_post_gamma clamps to. */
   if (gamma < 0.5f)
     gamma = 0.5f;
   if (gamma > 3.0f)
@@ -74,7 +54,8 @@ static void wild9_brightness_apply(void) {
 static void wild9_brightness_activate(void) { wild9_brightness_apply(); }
 
 static void wild9_brightness_vblank(void) {
-  /* Hot-reload gamma setting if changed in launcher/overlay during runtime */
+  /* Re-reads the option about twice a second so changes made while the game
+   * runs take effect. */
   static unsigned s_check_interval = 0;
   if (++s_check_interval >= 30) {
     s_check_interval = 0;

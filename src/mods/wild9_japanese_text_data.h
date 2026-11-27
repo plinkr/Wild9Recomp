@@ -20,8 +20,8 @@ extern const uint32_t wild9_ja_text_main_size;
 extern const uint8_t wild9_ja_text_level4[];
 extern const uint32_t wild9_ja_text_level4_size;
 extern const uint16_t wild9_ja_font_pixels[WILD9_JA_FONT_W * WILD9_JA_FONT_H];
-extern const Wild9JaGlyph
-    wild9_ja_glyphs[]; /* sorted by code for binary search */
+/* Sorted by code, for binary search. */
+extern const Wild9JaGlyph wild9_ja_glyphs[];
 extern const uint32_t wild9_ja_glyph_count;
 
 #endif

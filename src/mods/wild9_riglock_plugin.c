@@ -3,21 +3,15 @@
 #include "sio.h"
 
 /*
- * Rig Overhead Hover (R2 + L2 / RT + LT)
+ * While R2 and L2 are both held, the object or enemy the Rig carries stays
+ * directly above Wex, so he can run and jump with it (Nitro in the Gulag, for
+ * example). Releasing either trigger restores the stock carry physics, which
+ * were built for swinging and throwing rather than transport.
  *
- * In vanilla Wild 9, carrying objects or enemies (such as Nitro in the Gulag
- * level) with the Rig is unwieldy because the carry spring physics and cable
- * swing were designed for swinging and throwing rather than stable transport.
- *
- * When both triggers are held, this mod anchors the held object directly above
- * the player so they can run and jump without dropping it.
- *
- * Why this requires coordination with engine carry routines:
- * The vanilla carry spring (FUN_8002b8cc) calculates corrective forces within
- * the Rig swing angle frame. Simply translating the prop overhead causes the
- * carry spring to violently fight the displacement with severe oscillations.
- * To maintain stability, we align the Rig swing angle and cable length target
- * with vanilla overhead values before the spring executes.
+ * Moving the object overhead is not enough on its own: the carry spring
+ * (0x8002B8CC) computes its correction in the Rig's swing angle frame and
+ * fights the displacement with heavy oscillation. Its entry hook first sets
+ * the swing angle and cable length target to the vanilla overhead values.
  */
 
 #define PKG_RIG_LOCK "wild9.gameplay.riglock"
@@ -55,7 +49,17 @@
 #define W9_CABLE_LEN 0x80077AF8u
 #define W9_CABLE_UP 0x007D0000u
 
-#define W9_P_SWING 0x160u
+/* Each frame rig_carry_spring moves W9_RIG_SWING, the offset from the cable
+ * angle, towards W9_RIG_SWING_TARGET by at most W9_RIG_SWING_RATE and within
+ * W9_RIG_SWING_LIMIT. Angles use 4096 units per turn; 0 points straight up. */
+#define W9_RIG_SWING 0x160u
+#define W9_RIG_SWING_LIMIT 0x168u
+#define W9_RIG_SWING_RATE 0x16Cu
+#define W9_RIG_SWING_TARGET 0x170u
+#define W9_SWING_TARGET_UP 0u
+/* rig_carry_spring uses these while a D-pad direction steers the swing. */
+#define W9_SWING_LIMIT_STEER 0x200u
+#define W9_SWING_RATE_STEER 0x40u
 
 #define W9_N_IMP_RADIAL 0x1E8u
 #define W9_N_EXT_RADIAL 0x1ECu
@@ -76,7 +80,7 @@
 
 static int s_enabled = 0;
 static int s_height_units = W9_DEFAULT_HEIGHT_UNITS;
-static uint32_t s_player = 0;
+static uint32_t s_rig_node = 0;
 static int s_hover_on = 0;
 static int s_ramping = 0;
 static uint32_t s_hover_node = 0;
@@ -126,38 +130,37 @@ static int w9_option(const char *id, int fallback) {
   return (int)(negative ? -value : value);
 }
 
-/* Different actor classes store their grab holder at different offsets
- * (enemies use +0x3D4, while metal boxes use +0x3D8 / +0x3B4 / +0x3B8). */
-static int w9_grab_matches(uint32_t player, uint32_t holder) {
-  if (!w9_ptr_ok(player) || !w9_ptr_ok(holder))
+/* The grab holder lives at a different offset per held class: +0x3D4 for
+ * enemies, +0x3D8, +0x3B4 or +0x3B8 for metal boxes. */
+static int w9_grab_matches(uint32_t rig, uint32_t holder) {
+  if (!w9_ptr_ok(rig) || !w9_ptr_ok(holder))
     return 0;
-  return psx_mod_read_word(player + 0x3D4u) == holder ||
-         psx_mod_read_word(player + 0x3D8u) == holder ||
-         psx_mod_read_word(player + 0x3B4u) == holder ||
-         psx_mod_read_word(player + 0x3B8u) == holder;
+  return psx_mod_read_word(rig + 0x3D4u) == holder ||
+         psx_mod_read_word(rig + 0x3D8u) == holder ||
+         psx_mod_read_word(rig + 0x3B4u) == holder ||
+         psx_mod_read_word(rig + 0x3B8u) == holder;
 }
 
-/* The frame hook does not receive the player actor in registers, so we resolve
- * and cache the player node here during carry entry. */
-static void w9_cache_player(uint32_t actor, uint32_t holder) {
-  uint32_t phys, player;
+/* The frame hook has no register pointing to the Rig, so the carry hook caches
+ * the Rig grabber node, the one rig_carry_spring works on, for it. */
+static void w9_cache_rig_node(uint32_t actor, uint32_t holder) {
+  uint32_t phys, rig;
   if (!w9_ptr_ok(actor) || !w9_ptr_ok(holder))
     return;
   phys = psx_mod_read_word(actor + W9_OFF_ACTOR_PHYS);
   if (!w9_ptr_ok(phys))
     return;
-  player = psx_mod_read_word(phys + W9_OFF_HOLDER_NODE);
-  if (!w9_ptr_ok(player))
+  rig = psx_mod_read_word(phys + W9_OFF_HOLDER_NODE);
+  if (!w9_ptr_ok(rig))
     return;
-  if (!w9_grab_matches(player, holder))
+  if (!w9_grab_matches(rig, holder))
     return;
-  s_player = player;
+  s_rig_node = rig;
 }
 
-/* Configure Rig cable length and swing angle before the carry spring calculates
- * displacement forces to prevent angular lag and severe spring oscillation.
- * Input state (0x8007C788) is deliberately untouched so trigger holding does
- * not block directional walking input. */
+/* Runs before the carry spring computes its forces, so setting the cable length
+ * and swing angle here avoids angular lag and oscillation. The input word at
+ * 0x8007C788 is left alone so holding the triggers does not block walking. */
 static void w9_riglock_carry_entry(CPUState *cpu, uint32_t address) {
   uint32_t holder;
   uint16_t pad;
@@ -167,31 +170,30 @@ static void w9_riglock_carry_entry(CPUState *cpu, uint32_t address) {
   holder = psx_mod_read_word(W9_HELD_PTR);
   if (!holder)
     return;
-  w9_cache_player(cpu->gpr[4], holder);
+  w9_cache_rig_node(cpu->gpr[4], holder);
 
   pad = sio_get_pad_buttons();
   if ((pad & (W9_PAD_R2 | W9_PAD_L2)) == 0u) {
     psx_mod_write_word(W9_CABLE_LEN, W9_CABLE_UP);
-    if (w9_ptr_ok(s_player)) {
-      psx_mod_write_word(s_player + W9_P_SWING, 0u);
-      psx_mod_write_word(s_player + 0x170u, 0u);
-      psx_mod_write_word(s_player + 0x168u, 0x200u);
-      psx_mod_write_word(s_player + 0x16cu, 0x40u);
+    if (w9_ptr_ok(s_rig_node)) {
+      psx_mod_write_word(s_rig_node + W9_RIG_SWING, 0u);
+      psx_mod_write_word(s_rig_node + W9_RIG_SWING_TARGET, W9_SWING_TARGET_UP);
+      psx_mod_write_word(s_rig_node + W9_RIG_SWING_LIMIT, W9_SWING_LIMIT_STEER);
+      psx_mod_write_word(s_rig_node + W9_RIG_SWING_RATE, W9_SWING_RATE_STEER);
     }
   }
 }
 
-/* Non-path nodes are integrated directly by FUN_800172a4 by adding the Rig's
- * radial channel to world coordinates, making the walk channel unstable for
- * them. Pinning them to the player's world offset keeps them stable while
- * moving. */
-static void w9_hover_simple_horizontal(uint32_t held, uint32_t player) {
-  int32_t px = (int32_t)psx_mod_read_word(player + W9_N_X);
-  int32_t pz = (int32_t)psx_mod_read_word(player + W9_N_Z);
+/* 0x800172A4 moves nodes that are not on a path by adding the Rig's radial
+ * channel straight to their world position, so they drift while Wex walks.
+ * Pinning them to a fixed offset from the Rig keeps them steady. */
+static void w9_hover_simple_horizontal(uint32_t held, uint32_t rig) {
+  int32_t rig_x = (int32_t)psx_mod_read_word(rig + W9_N_X);
+  int32_t rig_z = (int32_t)psx_mod_read_word(rig + W9_N_Z);
   if (!s_hover_on) {
     int32_t max = W9_HOVER_CAPTURE_MAX << 12;
-    s_off_x = (int32_t)psx_mod_read_word(held + W9_N_X) - px;
-    s_off_z = (int32_t)psx_mod_read_word(held + W9_N_Z) - pz;
+    s_off_x = (int32_t)psx_mod_read_word(held + W9_N_X) - rig_x;
+    s_off_z = (int32_t)psx_mod_read_word(held + W9_N_Z) - rig_z;
     if (s_off_x > max)
       s_off_x = max;
     if (s_off_x < -max)
@@ -201,12 +203,12 @@ static void w9_hover_simple_horizontal(uint32_t held, uint32_t player) {
     if (s_off_z < -max)
       s_off_z = -max;
   }
-  psx_mod_write_word(held + W9_N_X, (uint32_t)(px + s_off_x));
-  psx_mod_write_word(held + W9_N_Z, (uint32_t)(pz + s_off_z));
+  psx_mod_write_word(held + W9_N_X, (uint32_t)(rig_x + s_off_x));
+  psx_mod_write_word(held + W9_N_Z, (uint32_t)(rig_z + s_off_z));
 }
 
 static void w9_riglock_frame(CPUState *cpu, uint32_t address) {
-  uint32_t holder, held, player;
+  uint32_t holder, held, rig;
   uint16_t pad;
   int32_t target_y, cur_y, diff;
   (void)cpu;
@@ -216,14 +218,14 @@ static void w9_riglock_frame(CPUState *cpu, uint32_t address) {
 
   holder = psx_mod_read_word(W9_HELD_PTR);
   if (!w9_ptr_ok(holder)) {
-    s_player = 0;
+    s_rig_node = 0;
     s_hover_on = 0;
     s_ramping = 0;
     return;
   }
   held = psx_mod_read_word(holder + W9_OFF_HOLDER_NODE);
   if (!w9_ptr_ok(held)) {
-    s_player = 0;
+    s_rig_node = 0;
     s_hover_on = 0;
     s_ramping = 0;
     return;
@@ -236,8 +238,8 @@ static void w9_riglock_frame(CPUState *cpu, uint32_t address) {
     return;
   }
 
-  player = s_player;
-  if (!w9_ptr_ok(player) || !w9_grab_matches(player, holder)) {
+  rig = s_rig_node;
+  if (!w9_ptr_ok(rig) || !w9_grab_matches(rig, holder)) {
     s_hover_on = 0;
     s_ramping = 0;
     return;
@@ -249,14 +251,14 @@ static void w9_riglock_frame(CPUState *cpu, uint32_t address) {
     s_ramping = 1;
   }
 
-  psx_mod_write_word(player + W9_P_SWING, 0u);
-  psx_mod_write_word(player + 0x170u, 0u);
+  psx_mod_write_word(rig + W9_RIG_SWING, 0u);
+  psx_mod_write_word(rig + W9_RIG_SWING_TARGET, W9_SWING_TARGET_UP);
 
-  /* Clamping radial velocity on path nodes (enemies, metal boxes) ensures they
-   * rise smoothly from their grab location instead of snapping jarringly. */
   if ((psx_mod_read_word(held + W9_N_FLAGS) & W9_N_TERRAIN) == 0u) {
-    w9_hover_simple_horizontal(held, player);
+    w9_hover_simple_horizontal(held, rig);
   } else {
+    /* Clamping the radial drive of path nodes, such as enemies and metal
+     * boxes, makes them rise from the grab point instead of snapping. */
     int32_t rad = (int32_t)psx_mod_read_word(held + W9_N_RADIAL_DRIVE);
     int32_t rad_max = 250 << 12;
     if (rad > rad_max) {
@@ -268,8 +270,8 @@ static void w9_riglock_frame(CPUState *cpu, uint32_t address) {
     }
   }
 
-  /* Prevent retained momentum and accumulated render offsets from drifting
-   * held props out of range while moving. */
+  /* Retained momentum and accumulated offsets would otherwise carry the object
+   * out of range while Wex moves. */
   psx_mod_write_word(held + W9_N_IMP_RADIAL, 0u);
   psx_mod_write_word(held + W9_N_EXT_RADIAL, 0u);
   psx_mod_write_word(held + W9_N_IMP_HEIGHT, 0u);
@@ -279,10 +281,9 @@ static void w9_riglock_frame(CPUState *cpu, uint32_t address) {
   psx_mod_write_word(held + W9_N_OFF_X_IN, 0u);
   psx_mod_write_word(held + W9_N_OFF_Z_IN, 0u);
 
-  /* Ramping vertical position initially allows the carry spring distance
-   * measurement to adapt without physics glitching, after which the prop
-   * tracks player vertical movement 1:1. */
-  target_y = (int32_t)psx_mod_read_word(player + W9_N_Y) - w9_height_fixed();
+  /* The object first rises at W9_RAMP_SPEED so the carry spring's distance
+   * measurement can adapt, then follows the Rig's height exactly. */
+  target_y = (int32_t)psx_mod_read_word(rig + W9_N_Y) - w9_height_fixed();
   cur_y = (int32_t)psx_mod_read_word(held + W9_N_Y);
   diff = target_y - cur_y;
 
@@ -306,7 +307,7 @@ static void w9_riglock_frame(CPUState *cpu, uint32_t address) {
 
 static void w9_riglock_activate(void) {
   s_enabled = 1;
-  s_player = 0;
+  s_rig_node = 0;
   s_hover_on = 0;
   s_ramping = 0;
   s_hover_node = 0;
