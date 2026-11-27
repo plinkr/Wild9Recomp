@@ -1,0 +1,41 @@
+format_version = 7
+id = "wild9.gameplay.missile-catch"
+version = "1.0.0"
+name = "Rig Missile Catch"
+author = "Wild9Recomp"
+description = "Lets the Rig catch the missiles grunts fire at Wex and throw them back."
+resolver = "declarative"
+save_compatibility = "shared"
+
+[[target]]
+game_id = "SLUS-00425"
+
+[[feature]]
+id = "missile_catch"
+name = "Rig Missile Catch"
+description = "The Rig beam can catch enemy missiles, including the heads some grunts bat or throw and the triple missiles later in the game. While you hold one it only goes off against enemies. Once you let go, it flies back at the grunt that fired it, or at the nearest enemy in the direction you threw it, and explodes like one of Wex's rockets. If it hits nothing, it explodes after three seconds."
+group = "Gameplay"
+default_enabled = false
+
+[[option]]
+feature = "missile_catch"
+id = "speed_percent"
+label = "Throw speed"
+description = "How fast a thrown missile flies, as a percentage of the speed enemies fire it at."
+type = "integer"
+min = 40
+max = 200
+step = 10
+default = 80
+
+[[option]]
+feature = "missile_catch"
+id = "homing"
+label = "Seek enemies"
+description = "Thrown missiles steer towards an enemy. Turn it off to make them fly straight in the direction you threw them."
+type = "boolean"
+default = "true"
+
+[[plugin]]
+feature = "missile_catch"
+id = "wild9.missile_catch"
